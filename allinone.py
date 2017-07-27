@@ -73,19 +73,22 @@ def get_model_list(task_name):
 
 
 def my_regressor(model, X_train, Y_train, X_test, Y_test, ss_Y):
-    model.fit(X_train, Y_train)
-    Y_train_pred = model.predict(X_train)
-    Y_test_pred = model.predict(X_test)
+    try:
+        model.fit(X_train, Y_train)
+        Y_train_pred = model.predict(X_train)
+        Y_test_pred = model.predict(X_test)
 
-    Y_train = ss_Y.inverse_transform(Y_train)
-    Y_train_pred = ss_Y.inverse_transform(Y_train_pred)
-    Y_test = ss_Y.inverse_transform(Y_test)
-    Y_test_pred = ss_Y.inverse_transform(Y_test_pred)
+        Y_train = ss_Y.inverse_transform(Y_train)
+        Y_train_pred = ss_Y.inverse_transform(Y_train_pred)
+        Y_test = ss_Y.inverse_transform(Y_test)
+        Y_test_pred = ss_Y.inverse_transform(Y_test_pred)
 
-    score_train = my_score(Y_train, Y_train_pred)
-    score_test = my_score(Y_test, Y_test_pred)
+        score_train = my_score(Y_train, Y_train_pred)
+        score_test = my_score(Y_test, Y_test_pred)
 
-    return np.c_[score_train, score_test]
+        return np.c_[score_train, score_test]
+    except:
+        return "error"
 
 def my_score(Y_real, Y_pred):
     MAPE = np.mean(np.abs(np.ones_like(Y_pred) - Y_pred / Y_real))
@@ -176,6 +179,8 @@ def single_task(task_name, cur_time, n_ensemble):
         score_list_i = []
         for model in model_list_i:
             score = my_regressor(model, X_train, Y_train_i, X_test, Y_test_i, ss_Y)
+            if score=="error":
+                continue
             score_list_i.append(score)
             Y_final_i.append(ss_Y.inverse_transform(model.predict(X_final)))
         ############################################################################
