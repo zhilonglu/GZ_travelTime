@@ -31,18 +31,21 @@ def initLinkId():
             linkid.append(all[i].split(";")[0])
     return linkid
 
-def compareFile(file1,file2):
+def compareFile(file1,file2,file3):
     linkid = initLinkId()
-    timeId = initTime()
     result_dict_1={}
     result_dict_2={}
+    result_dict_3={}
     fin_result_1={}
     fin_result_2 = {}
+    fin_result_3={}
     for i in linkid:
         result_dict_1[i]=[]
         result_dict_2[i]=[]
+        result_dict_3[i]=[]
         fin_result_1[i]=[]
         fin_result_2[i]=[]
+        fin_result_3[i]=[]
     with open(path+file1) as f1:
         all = f1.readlines()
         for i in range(len(all)):
@@ -61,13 +64,32 @@ def compareFile(file1,file2):
             result_dict_2[i] = sorted(result_dict_2[i])
             for j in result_dict_2[i]:
                 fin_result_2[i].append(j[1])
+    with open(path+file3) as f3:
+        all = f3.readlines()
+        for i in range(len(all)):
+            values = all[i].replace("\n","").split("#")
+            result_dict_3[values[0]].append((values[1],values[3]))
+        for i in result_dict_3:
+            result_dict_3[i] = sorted(result_dict_3[i])
+            for j in result_dict_3[i]:
+                fin_result_3[i].append(j[1])
+    # x_id = np.array(range(132))
+    # y = []
+    # for i in fin_result_1:
+    #     y.append(sum(map(lambda x: abs(float(x[0]) - float(x[1])), zip(fin_result_1[i], fin_result_2[i]))) / 900)
+    # y_mape = np.array(y)
+    # print(sum(y_mape))
+    # plt.plot(x_id, y_mape)
+    # plt.show()
     for i in linkid:
         plt.figure()
         x = np.array(range(900))
         y1 = np.array(fin_result_1[i])
         y2 = np.array(fin_result_2[i])
-        plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label="historyAvg")
-        plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label="ARIMA")
+        y3 = np.array(fin_result_3[i])
+        plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label="fcn_mean")
+        plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label="fcn_median")
+        plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label="lastValue")
         plt.xlabel("time")  # X轴标签
         plt.ylabel("TrafficVolume")  # Y轴标签
         plt.title(i)  # 标题
@@ -75,4 +97,4 @@ def compareFile(file1,file2):
         plt.show()
 
 if __name__ == '__main__':
-    compareFile("submit_1.txt","submit_arima.txt")
+    compareFile("submit_fcn_meanNew.txt","submit_min_fcnAndLastValue.txt","submit_2.txt")

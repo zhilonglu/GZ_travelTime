@@ -21,14 +21,14 @@ tensor=np.loadtxt(inpath+"tensor_new.csv",delimiter=',')
 #         for k in range(3):
 #             dict_data[i].append((j,k))
 # print(dict_data)
-dt = {}
-dt[0]=[(21,1),(12,3)]
-dt[1]=[(23,1),(12,3),(14,5)]
-sortDT={}
-for i in dt:
-    sorted(dt[i])
-    # sortDT[i]=tempList
-print(dt)
+# dt = {}
+# dt[0]=[(21,1),(12,3)]
+# dt[1]=[(23,1),(12,3),(14,5)]
+# sortDT={}
+# for i in dt:
+#     sorted(dt[i])
+#     # sortDT[i]=tempList
+# print(dt)
 
 a=[211,2312,12312,12,243,43,211]
 c={}
@@ -87,13 +87,31 @@ path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData\\"
 #         tuple_list.append(j[1])
 #     print(tuple_list)
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+# #
+# x = range(10)
+# y1 = [elem*2 for elem in x]
+# plt.plot(x, y1,color="blue", linewidth=2.5, linestyle="-", label="cosine")
 #
-x = range(10)
-y1 = [elem*2 for elem in x]
-plt.plot(x, y1,color="blue", linewidth=2.5, linestyle="-", label="cosine")
+# y2 = [elem**2 for elem in x]
+# plt.plot(x, y2,color="red",  linewidth=2.5, linestyle="-", label="sine")
+# plt.legend(loc='upper left')
+# plt.show()
 
-y2 = [elem**2 for elem in x]
-plt.plot(x, y2,color="red",  linewidth=2.5, linestyle="-", label="sine")
-plt.legend(loc='upper left')
-plt.show()
+
+a=0
+b=4
+# if 0 in [a,b]:
+#     print(max(a,b))
+# else:
+#     print(min(a,b))
+# c = max(a,b) if 0 in [a,b] else min(a,b)
+# print(c)
+
+y1 = [30,30,40,40,50,50]
+y2 = [40,40,40,40,40,40]
+y3 = [50,50,50,50,50,50]
+y = list(map(lambda x:x[0]+x[1]+x[2],zip(y1,y2,y3)))
+r = [x/sum(y) for x in y]
+print(r)
+print(y)
