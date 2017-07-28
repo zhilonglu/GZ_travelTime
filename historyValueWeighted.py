@@ -29,7 +29,7 @@ with open("C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\submit_historyValueWeighted.txt", 
             for i in files:
                 files_id = os.listdir(path+k+"\\"+i)
                 for file in files_id:
-                    if file=="tensor_fill.csv":
+                    if file=="tensor.csv":
                             with open(path+k+"\\"+i+"\\"+file) as f2:
                                 all = f2.readlines()
                                 data_dict={}

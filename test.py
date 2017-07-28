@@ -117,10 +117,19 @@ b=4
 # print(y)
 
 X = [[0], [1], [2], [3]]
-y = [0, 0, 1, 1]
-from sklearn.neighbors import KNeighborsClassifier
-neigh = KNeighborsClassifier(n_neighbors=3)
-neigh.fit(X, y)
-print(neigh.predict([[1.1]]))
-print(neigh.predict([[2.1]]))
-print(neigh.predict_proba([[2.1]]))
+y = [0, 1, 4, 9]
+# from sklearn.neighbors import KNeighborsRegressor
+# neigh = KNeighborsRegressor(n_neighbors=2)
+# neigh.fit(X, y)
+# pre_y = neigh.predict([[1.5],[2],[3]])
+# print(neigh.predict([[1.5],[2],[3]]))
+
+from sklearn.ensemble import RandomForestRegressor
+model = RandomForestRegressor(n_estimators=100, max_depth=None,min_samples_split=2, random_state=0)
+model.fit(X,y)
+print(model.predict([[1.5],[2],[3]]))
+
+# y = [0.3*x for x in y]
+# y2 = 3*y
+# print(y)
+# print(y2)

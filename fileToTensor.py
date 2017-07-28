@@ -65,7 +65,13 @@ for i in outTensor:
     outputPath = path+"tensorData2\\"+str(i)
     if not os.path.exists(outputPath):
         os.mkdir(outputPath)
+    sortedList = sorted(outTensor[i])
     with open(outputPath+"\\tensor.csv","w") as f:
-        sortedList = sorted(outTensor[i])
         for k in sortedList:
             f.write(",".join(map(str, k[1])) + "\n")
+    with open(outputPath+"\\tensor_all.csv","w") as f2:
+        for k in sortedList:
+            value = []
+            value.append(sum(k[1][:60]))
+            value.append(sum(k[1][60:]))
+            f2.write(",".join(map(str, value)) + "\n")

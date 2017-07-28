@@ -87,9 +87,9 @@ def compareFile(file1,file2,file3):
         y1 = np.array(fin_result_1[i])
         y2 = np.array(fin_result_2[i])
         y3 = np.array(fin_result_3[i])
-        plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label="fcn_mean")
-        plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label="fcn_median")
-        plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label="lastValue")
+        plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label=file1.split(".")[0])
+        plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label=file2.split(".")[0])
+        plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label=file3.split(".")[0])
         plt.xlabel("time")  # X轴标签
         plt.ylabel("TrafficVolume")  # Y轴标签
         plt.title(i)  # 标题
@@ -97,4 +97,4 @@ def compareFile(file1,file2,file3):
         plt.show()
 
 if __name__ == '__main__':
-    compareFile("submit_fcn_meanNew.txt","submit_min_fcnAndLastValue.txt","submit_2.txt")
+    compareFile("submit_knnWeighted.txt","submit_RFWeighted.txt","submit_2.txt")
