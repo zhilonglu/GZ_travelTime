@@ -46,7 +46,7 @@ def compareFile(file1,file2,file3):
         fin_result_1[i]=[]
         fin_result_2[i]=[]
         fin_result_3[i]=[]
-    with open(path+file1) as f1:
+    with open(path+"result\\"+file1) as f1:
         all = f1.readlines()
         for i in range(len(all)):
             values = all[i].replace("\n","").split("#")
@@ -55,7 +55,7 @@ def compareFile(file1,file2,file3):
             result_dict_1[i] = sorted(result_dict_1[i])
             for j in result_dict_1[i]:
                 fin_result_1[i].append(j[1])
-    with open(path+file2) as f2:
+    with open(path+"result\\"+file2) as f2:
         all = f2.readlines()
         for i in range(len(all)):
             values = all[i].replace("\n","").split("#")
@@ -64,7 +64,7 @@ def compareFile(file1,file2,file3):
             result_dict_2[i] = sorted(result_dict_2[i])
             for j in result_dict_2[i]:
                 fin_result_2[i].append(j[1])
-    with open(path+file3) as f3:
+    with open(path+"result\\"+file3) as f3:
         all = f3.readlines()
         for i in range(len(all)):
             values = all[i].replace("\n","").split("#")
@@ -73,28 +73,44 @@ def compareFile(file1,file2,file3):
             result_dict_3[i] = sorted(result_dict_3[i])
             for j in result_dict_3[i]:
                 fin_result_3[i].append(j[1])
-    # x_id = np.array(range(132))
-    # y = []
-    # for i in fin_result_1:
-    #     y.append(sum(map(lambda x: abs(float(x[0]) - float(x[1])), zip(fin_result_1[i], fin_result_2[i]))) / 900)
-    # y_mape = np.array(y)
-    # print(sum(y_mape))
-    # plt.plot(x_id, y_mape)
-    # plt.show()
     for i in linkid:
-        plt.figure()
         x = np.array(range(900))
         y1 = np.array(fin_result_1[i])
         y2 = np.array(fin_result_2[i])
         y3 = np.array(fin_result_3[i])
-        plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label=file1.split(".")[0])
-        plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label=file2.split(".")[0])
-        plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label=file3.split(".")[0])
-        plt.xlabel("time")  # X轴标签
-        plt.ylabel("TrafficVolume")  # Y轴标签
-        plt.title(i)  # 标题
-        plt.legend(loc='upper right')
-        plt.show()
-
+        # plotInOneFigure(i,x,y1,y2,y3,file1,file2,file3)
+        plotInOneSubFigure(i, x, y1, y2, y3, file1, file2, file3)
+#将所有图像画在一张图表中
+def plotInOneFigure(i,x,y1,y2,y3,file1,file2,file3):
+    plt.figure()
+    plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label=file1.split(".")[0])
+    plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label=file2.split(".")[0])
+    plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label=file3.split(".")[0])
+    plt.xlabel("time")  # X轴标签
+    plt.ylabel("TrafficVolume")  # Y轴标签
+    plt.title(i)  # 标题
+    plt.legend(loc='upper right')
+    plt.show()
+#将所有图像画在不同的sub图中
+def plotInOneSubFigure(i,x,y1,y2,y3,file1,file2,file3):
+    plt.figure()
+    ax1 = plt.subplot(311)
+    ax2 = plt.subplot(312)
+    ax3 = plt.subplot(313)
+    plt.sca(ax1)
+    plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label=file1.split(".")[0])
+    plt.ylabel("TrafficVolume")  # Y轴标签
+    plt.title(i)  # 标题
+    plt.legend(loc='upper right')
+    plt.sca(ax2)
+    plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label=file2.split(".")[0])
+    plt.ylabel("TrafficVolume")  # Y轴标签
+    plt.legend(loc='upper right')
+    plt.sca(ax3)
+    plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label=file3.split(".")[0])
+    plt.xlabel("time")  # X轴标签
+    plt.ylabel("TrafficVolume")  # Y轴标签
+    plt.legend(loc='upper right')
+    plt.show()
 if __name__ == '__main__':
-    compareFile("submit_knnWeighted.txt","submit_RFWeighted.txt","submit_2.txt")
+    compareFile("submit_min_KNNRF.txt","submit_min_fcnAndLastValue.txt","submit_knn_xie.txt")

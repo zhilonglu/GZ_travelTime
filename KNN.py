@@ -3,6 +3,33 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import RandomForestRegressor
 import os
 import json
+
+# #KNN进行预测的结果
+# def KNN_pre(k,i):
+#     tensor = np.loadtxt(path + k + "\\" + i + "\\" + "tensor_fill.csv", delimiter=',')
+#     knownX, knownY, preX = splitData(tensor, 30, 30)
+#     for tm in range(10):
+#         kf = KFold(n_splits=int(knownX.shape[0]))
+#         for train_index, valid_index in kf.split(knownX):
+#             trainX, validX = knownX[train_index], knownX[valid_index]
+#             T_x, V_x = trainX.sum(axis=1).reshape(-1, 1), validX.sum(axis=1).reshape(-1, 1)
+#             trainY, validY = knownY[train_index], knownY[valid_index]
+#             T_y, V_y = trainY.sum(axis=1).reshape(-1, 1), validY.sum(axis=1).reshape(-1, 1)
+#             neigh = KNeighborsRegressor(n_neighbors=9)
+#             neigh.fit(T_x, T_y)
+#     P_x = preX.sum(axis=1).reshape(-1, 1)
+#     P_y = neigh.predict(P_x)
+#     pre_y = P_y.T[0]
+#     # 计算08-09各自的比例情况
+#     per_tensor = np.loadtxt(path + k + "\\" + i + "\\" + "tensor.csv", delimiter=',')
+#     rateData = per_tensor[:92, 60:].sum(axis=0).reshape(1, -1)
+#     rate = rateData / rateData.sum()
+#     r = rate[0]
+#     # 分摊比例，计算每两分钟的预测值
+#     for idx_y in pre_y:
+#         pre_value[i] += [idx_y * v for v in r]
+#     return r,pre_y
+#KNN与RF分别进行预测
 path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\"
 linkDict={}
 with open(path+"linkDict.json") as f:
@@ -51,7 +78,6 @@ for k in rootfiles:
                             pre_x.append([float(values[0])])
                         #KNN sklearn model
                         # neigh = KNeighborsRegressor(n_neighbors=5)
-                        # neigh.fit(x, y)
                         # neigh.fit(x, y)
                         # pre_y = neigh.predict(pre_x)
                         #RF sklearn model

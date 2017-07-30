@@ -124,12 +124,55 @@ y = [0, 1, 4, 9]
 # pre_y = neigh.predict([[1.5],[2],[3]])
 # print(neigh.predict([[1.5],[2],[3]]))
 
-from sklearn.ensemble import RandomForestRegressor
-model = RandomForestRegressor(n_estimators=100, max_depth=None,min_samples_split=2, random_state=0)
-model.fit(X,y)
-print(model.predict([[1.5],[2],[3]]))
+# from sklearn.ensemble import RandomForestRegressor
+# model = RandomForestRegressor(n_estimators=100, max_depth=None,min_samples_split=2, random_state=0)
+# model.fit(X,y)
+# print(model.predict([[1.5],[2],[3]]))
 
 # y = [0.3*x for x in y]
 # y2 = 3*y
 # print(y)
 # print(y2)
+
+# a="sfsdfsdfsdf:sd"
+# b = a.encode('utf-8').strip()
+# c = str(b, encoding="utf-8")
+# print(c)
+
+# import numpy as np
+# import matplotlib.pyplot as plt
+# # plt.figure(1)#创建图表1
+# plt.figure(2)#创建图表2
+# ax1=plt.subplot(211)#在图表2中创建子图1
+# ax2=plt.subplot(212)#在图表2中创建子图2
+# x=np.linspace(0,3,100)
+# for i in range(5):
+#     # plt.figure(1)
+#     # plt.plot(x,np.exp(i*x/3))
+#     plt.sca(ax1)
+#     plt.plot(x,np.sin(i*x))
+#     plt.sca(ax2)
+#     plt.plot(x,np.cos(i*x))
+# plt.show()
+
+# test1 = np.array([[5, 10, 15],
+#             [20, 25, 30],
+#             [35, 40, 45]])
+# x = test1.sum(axis=0).reshape(1,-1)
+# print(x)
+# y = x/x.sum()
+# print(y[0])
+
+a = [1,2,0]
+b = [2,3,1]
+c = [0,1,0]
+def findMinExceptZero(a):
+    tmp = sorted(a)
+    if tmp[0]==0:
+        if tmp[1]==0:
+            return tmp[2]
+        else:
+            return tmp[1]
+    else:
+        return tmp[0]
+print(findMinExceptZero(c))
