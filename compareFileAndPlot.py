@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
+import json
 
 
 #将几个提交的结果进行比较，并画出折线图
@@ -30,9 +31,15 @@ def initLinkId():
         for i in range(len(all)):
             linkid.append(all[i].split(";")[0])
     return linkid
-
+#获取linkid对应的数字
+def initLinkId_num():
+    linkDict = {}
+    with open(path + "reDict.json") as f:
+        linkDict = json.loads(f.read())
+    return linkDict
 def compareFile(file1,file2,file3):
     linkid = initLinkId()
+    linkdict = initLinkId_num()
     result_dict_1={}
     result_dict_2={}
     result_dict_3={}
@@ -74,12 +81,13 @@ def compareFile(file1,file2,file3):
             for j in result_dict_3[i]:
                 fin_result_3[i].append(j[1])
     for i in linkid:
+        # if linkdict[i]==67 or linkdict[i]==68:
         x = np.array(range(900))
         y1 = np.array(fin_result_1[i])
         y2 = np.array(fin_result_2[i])
         y3 = np.array(fin_result_3[i])
-        # plotInOneFigure(i,x,y1,y2,y3,file1,file2,file3)
-        plotInOneSubFigure(i, x, y1, y2, y3, file1, file2, file3)
+        plotInOneFigure(linkdict[i],x,y1,y2,y3,file1,file2,file3)
+        # plotInOneSubFigure(i, x, y1, y2, y3, file1, file2, file3)
 #将所有图像画在一张图表中
 def plotInOneFigure(i,x,y1,y2,y3,file1,file2,file3):
     plt.figure()
@@ -113,4 +121,4 @@ def plotInOneSubFigure(i,x,y1,y2,y3,file1,file2,file3):
     plt.legend(loc='upper right')
     plt.show()
 if __name__ == '__main__':
-    compareFile("submit_min_KNNRF.txt","submit_min_fcnAndLastValue.txt","submit_knn_xie.txt")
+    compareFile("submit_min_FCN3AndLasValueAndKNN_xie.txt","submit_min_LastValueAndKNN0729.txt","submit_weight_knn0730.txt")

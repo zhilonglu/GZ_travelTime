@@ -8,8 +8,8 @@ def splitData(tensor,n_output,n_pred):
     knownY = tensor[0: n_known, n_input: n_input + n_output]
     preX = tensor[n_known: n_known+n_pred, 0: n_input]
     return (knownX,knownY,preX)
-inpath="C:\\Users\\NLSDE\\Desktop\\kdd\\最后提交\\data_10\\1_0pm\\"
-tensor=np.loadtxt(inpath+"tensor_new.csv",delimiter=',')
+# inpath="C:\\Users\\NLSDE\\Desktop\\kdd\\最后提交\\data_10\\1_0pm\\"
+# tensor=np.loadtxt(inpath+"tensor_new.csv",delimiter=',')
 # knownX,knownY,preX=splitData(tensor,6,7)
 # print(knownX)
 # print(knownY)
@@ -175,4 +175,24 @@ def findMinExceptZero(a):
             return tmp[1]
     else:
         return tmp[0]
-print(findMinExceptZero(c))
+# print(findMinExceptZero(c))
+
+
+# import xgboost as xgb
+# # read in data
+# dtrain = xgb.DMatrix('demo/data/agaricus.txt.train')
+# dtest = xgb.DMatrix('demo/data/agaricus.txt.test')
+# # specify parameters via map
+# param = {'max_depth':2, 'eta':1, 'silent':1, 'objective':'binary:logistic' }
+# num_round = 2
+# bst = xgb.train(param, dtrain, num_round)
+# # make prediction
+# preds = bst.predict(dtest)
+# print(preds)
+
+from pyecharts import Bar
+
+bar = Bar("我的第一个图表", "这里是副标题")
+bar.add("服装", ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"], [5, 20, 36, 10, 75, 90])
+bar.show_config()
+bar.render()

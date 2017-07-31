@@ -35,7 +35,7 @@ def integer(file1,file2):
     #     for i in range(len(all)):
     #         values = all[i].replace("\n","").split("#")
     #         result_dict_3[(values[0],values[1],values[2])] = float(values[3])
-    with open(path+"submit_min_FCN3AndKNNRF.txt","w") as f4:
+    with open(path+"submit_min_LastValueAndKNN0729.txt","w") as f4:
         for i in result_dict_1:
             f4.write("#".join(i)+"#"+str(findMinExceptZero([result_dict_1[i],result_dict_2[i]]))+"\n")
-integer("submit_fcn_mean3.txt","submit_min_KNNRF.txt")
+integer("submit_2.txt","submit_knn_0729_c.txt")

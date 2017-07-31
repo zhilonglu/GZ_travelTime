@@ -7,6 +7,7 @@ from sklearn.linear_model import ElasticNet
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.svm import SVR
+import xgboost as xgb
 from sklearn import linear_model
 import os
 import json
@@ -22,6 +23,15 @@ def splitData(tensor,n_output,n_pred):
     knownY = tensor[0: n_known, n_input: n_input + n_output]
     preX = tensor[n_known: n_known+n_pred, 0: n_input]
     return (knownX,knownY,preX)
+
+
+#zgboost进行预测的结果
+def xgb_pre(k,i):
+    tensor = np.loadtxt(path + k + "\\" + i + "\\" + "tensor_fill.csv", delimiter=',')
+    knownX, knownY, preX = splitData(tensor, 30, 30)
+    model = xgb.XGBRegressor().fit(knownX,knownY)
+    pre_y = model.predict(preX)
+    return pre_y
 
 #KNN进行预测的结果
 def KNN_pre(k,i):
@@ -81,27 +91,29 @@ for k in rootfiles:
         for i in files:
             files_id = os.listdir(path + k + "\\" + i)
             # r:08-09每两分钟分配的比例    pre_y:KNN 预测的08-09的总值
-            r,pre_y = KNN_pre(k,i)
+            # r,pre_y = KNN_pre(k,i)
+
+            pre_y = xgb_pre(k,i)
 
 #下面的代码主要是将模型训练后预测的结果输出到最终提交文件中
-# timeId=[]
-# timeDay=[]
-# timeMin=[]
-# startDay = datetime.datetime.strptime("2016-06-01","%Y-%m-%d")
-# startTime = datetime.datetime.strptime("08:00:00","%H:%M:%S")
-# for i in range(0,30,1):
-#     endDay = startDay + datetime.timedelta(days=i)
-#     timeDay.append(datetime.datetime.strftime(endDay,"%Y-%m-%d"))
-# for i in range(0,62,2):
-#     endTime = startTime + datetime.timedelta(minutes=i)
-#     timeMin.append(datetime.datetime.strftime(endTime,"%H:%M:%S"))
-# for i in range(len(timeDay)):
-#     for j in range(len(timeMin)-1):
-#         timeId.append("["+timeDay[i]+" "+timeMin[j]+","+timeDay[i]+" "+timeMin[j+1]+")")
-# with open(path+"submit_KNNWeighted.txt","w") as f:
-#     output=[]
-#     for idx in pre_value:
-#         output += pre_value[idx]
-#     for i in range(len(linkDict)):
-#         for j in range(len(timeId)):
-#             f.write(linkDict[str(i+1)] + "#" + timeId[j].split(" ")[0][1:] + "#" + timeId[j] + "#" + str(output[i*900+j])+"\n")
+timeId=[]
+timeDay=[]
+timeMin=[]
+startDay = datetime.datetime.strptime("2016-06-01","%Y-%m-%d")
+startTime = datetime.datetime.strptime("08:00:00","%H:%M:%S")
+for i in range(0,30,1):
+    endDay = startDay + datetime.timedelta(days=i)
+    timeDay.append(datetime.datetime.strftime(endDay,"%Y-%m-%d"))
+for i in range(0,62,2):
+    endTime = startTime + datetime.timedelta(minutes=i)
+    timeMin.append(datetime.datetime.strftime(endTime,"%H:%M:%S"))
+for i in range(len(timeDay)):
+    for j in range(len(timeMin)-1):
+        timeId.append("["+timeDay[i]+" "+timeMin[j]+","+timeDay[i]+" "+timeMin[j+1]+")")
+with open(path+"submit_XGB.txt","w") as f:
+    output=[]
+    for idx in pre_value:
+        output += pre_value[idx]
+    for i in range(len(linkDict)):
+        for j in range(len(timeId)):
+            f.write(linkDict[str(i+1)] + "#" + timeId[j].split(" ")[0][1:] + "#" + timeId[j] + "#" + str(output[i*900+j])+"\n")
