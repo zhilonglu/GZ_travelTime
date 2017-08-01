@@ -16,10 +16,10 @@ def findMinExceptZero(a):
         return tmp[1]
     else:
         return tmp[0]
-def integer(file1,file2):
+def integer(file1,file2,file3):
     result_dict_1={}
     result_dict_2={}
-    # result_dict_3={}
+    result_dict_3={}
     with open(path+file1) as f1:
         all = f1.readlines()
         for i in range(len(all)):
@@ -30,12 +30,12 @@ def integer(file1,file2):
         for i in range(len(all)):
             values = all[i].replace("\n","").split("#")
             result_dict_2[(values[0],values[1],values[2])] = float(values[3])
-    # with open(path+file3) as f3:
-    #     all = f3.readlines()
-    #     for i in range(len(all)):
-    #         values = all[i].replace("\n","").split("#")
-    #         result_dict_3[(values[0],values[1],values[2])] = float(values[3])
-    with open(path+"submit_min_LastValueAndKNN0729.txt","w") as f4:
+    with open(path+file3) as f3:
+        all = f3.readlines()
+        for i in range(len(all)):
+            values = all[i].replace("\n","").split("#")
+            result_dict_3[(values[0],values[1],values[2])] = float(values[3])
+    with open(path+"submit_fcn_mean4AndLastValue2AndweightKNN_0731.txt","w") as f4:
         for i in result_dict_1:
             f4.write("#".join(i)+"#"+str(findMinExceptZero([result_dict_1[i],result_dict_2[i]]))+"\n")
-integer("submit_2.txt","submit_knn_0729_c.txt")
+integer("submit_lastValue2.txt","submit_fcn_mean4.txt","submit_weight_2tensor_knn0731.txt")

@@ -190,9 +190,19 @@ def findMinExceptZero(a):
 # preds = bst.predict(dtest)
 # print(preds)
 
-from pyecharts import Bar
+# from pyecharts import Bar
+#
+# bar = Bar("我的第一个图表", "这里是副标题")
+# bar.add("服装", ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"], [5, 20, 36, 10, 75, 90])
+# bar.show_config()
+# bar.render()
 
-bar = Bar("我的第一个图表", "这里是副标题")
-bar.add("服装", ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"], [5, 20, 36, 10, 75, 90])
-bar.show_config()
-bar.render()
+
+# x = [0]*900
+# print(x)
+
+x=np.array([[12],[123],[14]])
+print(x)
+x1 = x.reshape(1,-1)
+print(x1)
+print(x1[0])

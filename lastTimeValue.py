@@ -2,11 +2,6 @@ import datetime
 
 path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\"
 linkid=[]
-# #genearate time
-# def dateRange(start, end, step, format):
-#     strptime, strftime = datetime.datetime.strptime, datetime.datetime.strftime
-#     minutes = (strptime(end, format) - strptime(start, format)).days*60
-#     return [strftime(strptime(start, format) + datetime.timedelta(minutes=i), format) for i in range(0, minutes, step)]
 timeId=[]
 timeDay=[]
 timeMin=[]
@@ -16,7 +11,6 @@ lastTime="07:58:00"#用这个时间段的流量代替之后一个小时的所有
 for i in range(0,30,1):
     endDay = startDay + datetime.timedelta(days=i)
     timeDay.append(datetime.datetime.strftime(endDay,"%Y-%m-%d"))
-# print(timeDay)
 for i in range(0,62,2):
     endTime = startTime + datetime.timedelta(minutes=i)
     timeMin.append(datetime.datetime.strftime(endTime,"%H:%M:%S"))
@@ -47,9 +41,9 @@ with open(path+"gy_contest_link_traveltime_training_data.txt") as f:
         if idx_day in timeDay and idx_linkid in linkid and idx_timeRange==lastTime:
             avgData[(idx_linkid,idx_day)]=float(values[3].replace("\n",""))
 outputs=[]
-with open(path+"submit_2.txt","w") as f:
+with open(path+"result\\submit_lastValue2.txt","w") as f:
     for i in timeId:
         day = i.split(" ")[0][1:]
         for j in linkid:
-            value = avgData[(j,day)]
+            value = avgData[(j,day)]*1.5
             f.write(j+"#"+day+"#"+i+"#"+str(value)+"\n")

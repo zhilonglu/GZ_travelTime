@@ -34,7 +34,6 @@ with open(path+"reDict.json") as f:
     linkDict=json.loads(f.read())
 # print(linkDict)
 with open(path+"gy_contest_link_traveltime_training_data.txt") as f:
-    with open(path+"sourceData06-09.csv","w") as f1:
         f.readline()#skip the header
         all = f.readlines()
         for i in range(len(all)):
@@ -44,7 +43,6 @@ with open(path+"gy_contest_link_traveltime_training_data.txt") as f:
             idx_timeMin = values[2].split(" ")[1].split(",")[0]
             volume = float(values[3].replace("\n",""))
             if idx_timeMin in timeMin and idx_linkid in linkid:
-                f1.write(all[i].replace(";",","))
                 data_dir[(idx_linkid,idx_timeDay)].append((idx_timeMin,volume))
 outTensor ={}
 for i in linkid:
@@ -61,8 +59,10 @@ for i in data_dir:
     for k in sortedList:
         tempList.append(k[1])
     outTensor[i[0]].append((i[1],tempList))
+if not os.path.exists(path+"tensorData3\\"):
+    os.mkdir(path+"tensorData3\\")
 for i in outTensor:
-    outputPath = path+"tensorData2\\"+str(i)
+    outputPath = path+"tensorData3\\"+str(i)
     if not os.path.exists(outputPath):
         os.mkdir(outputPath)
     sortedList = sorted(outTensor[i])
