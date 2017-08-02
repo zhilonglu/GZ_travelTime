@@ -120,4 +120,4 @@ def plotInOneSubFigure(i,x,y1,y2,y3,file1,file2,file3):
     plt.legend(loc='upper right')
     plt.show()
 if __name__ == '__main__':
-    compareFile("submit_min_FCN3AndLasValueAndKNN_xie.txt","submit_AllModelMean2.txt","submit_AllModelMean.txt")
+    compareFile("submit_fcn_mean5AndLastValue2AndweightKNN_0731.txt","submit_fcn_mean5.txt","submit_XGBWeighted_possion.txt")

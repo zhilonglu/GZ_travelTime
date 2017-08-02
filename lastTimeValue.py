@@ -1,14 +1,30 @@
 import datetime
+import json
+import os
 
-path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\"
-linkid=[]
+def loadPath():
+    # with open("config.json") as f:
+    #这是用于自验证的代码
+    with open("configSelfValid.json") as f:
+        config=json.loads(f.read())
+        return config["datapath"],config["sharepath"],config["rootpath"],config["selfvalidpath"],config["startdate"],config["days"]
+
+datapath,sharepath,rootpath,selfvalidpath,startdate,days=loadPath()
+
+linkDict={}
+with open(datapath+"linkDict.json") as f:
+    linkDict=json.loads(f.read())
+reDict={}
+with open(datapath+"reDict.json") as f:
+    reDict=json.loads(f.read())
+linkid = os.listdir(selfvalidpath)
 timeId=[]
 timeDay=[]
 timeMin=[]
-startDay = datetime.datetime.strptime("2016-06-01","%Y-%m-%d")
+startDay = datetime.datetime.strptime(startdate,"%Y-%m-%d")
 startTime = datetime.datetime.strptime("08:00:00","%H:%M:%S")
 lastTime="07:58:00"#用这个时间段的流量代替之后一个小时的所有流量值，30个值取值一样。
-for i in range(0,30,1):
+for i in range(0,int(days),1):
     endDay = startDay + datetime.timedelta(days=i)
     timeDay.append(datetime.datetime.strftime(endDay,"%Y-%m-%d"))
 for i in range(0,62,2):
@@ -21,16 +37,16 @@ time_range= []
 for i in range(0,60,2):
     endTime = startTime + datetime.timedelta(minutes=i)
     time_range.append(datetime.datetime.strftime(endTime,"%H:%M:%S"))
-with open(path+"gy_contest_link_info.txt") as f:
-    f.readline()
-    all = f.readlines()
-    for i in range(len(all)):
-        linkid.append(all[i].split(";")[0])
+# with open(datapath+"gy_contest_link_info.txt") as f:
+#     f.readline()
+#     all = f.readlines()
+#     for i in range(len(all)):
+#         linkid.append(all[i].split(";")[0])
 avgData={}
 for i in linkid:
     for j in timeDay:
-        avgData[(i,j)] = 0
-with open(path+"gy_contest_link_traveltime_training_data.txt") as f:
+        avgData[(linkDict[i],j)] = 0
+with open(datapath+"gy_contest_link_traveltime_training_data.txt") as f:
     f.readline()#skip the header
     all = f.readlines()
     for i in range(len(all)):
@@ -38,12 +54,14 @@ with open(path+"gy_contest_link_traveltime_training_data.txt") as f:
         idx_linkid = values[0]
         idx_day = values[1]
         idx_timeRange = values[2].split(" ")[1].split(",")[0]
-        if idx_day in timeDay and idx_linkid in linkid and idx_timeRange==lastTime:
+        if idx_day in timeDay and str(reDict[idx_linkid]) in linkid and idx_timeRange==lastTime:
             avgData[(idx_linkid,idx_day)]=float(values[3].replace("\n",""))
 outputs=[]
-with open(path+"result\\submit_lastValue2.txt","w") as f:
-    for i in timeId:
-        day = i.split(" ")[0][1:]
-        for j in linkid:
-            value = avgData[(j,day)]*1.5
-            f.write(j+"#"+day+"#"+i+"#"+str(value)+"\n")
+# with open(datapath+"result\\submit_lastValue1.txt","w") as f:
+#如果进行本地验证时，则启用下述代码
+with open(datapath + "selfValid\\selfValid_lastValue1_new.txt", "w") as f:
+    for i in linkid:
+        for j in timeId:
+            day = j.split(" ")[0][1:]
+            value = avgData[(linkDict[i],day)]
+            f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")

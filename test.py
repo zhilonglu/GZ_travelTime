@@ -201,8 +201,38 @@ def findMinExceptZero(a):
 # x = [0]*900
 # print(x)
 
-x=np.array([[12],[123],[14]])
-print(x)
-x1 = x.reshape(1,-1)
-print(x1)
-print(x1[0])
+# x=np.array([[12],[123],[14]])
+# print(x)
+# x1 = x.reshape(1,-1)
+# print(x1)
+# print(x1[0])
+
+
+#将读取的tensor进行拆分，分为训练部分和测试部分
+def splitData(tensor,n_output,n_pred):
+    n_known=tensor.shape[0]-n_pred
+    n_input=tensor.shape[1]-n_output
+    knownX = tensor[0: n_known, 0: n_input]
+    knownY = tensor[0: n_known, n_input: n_input + n_output]
+    preX = tensor[n_known: n_known+n_pred, 0: n_input]
+    return (knownX,knownY,preX)
+
+tensor = np.loadtxt("C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\1\\tensor_fill.csv", delimiter=',')
+knownX, knownY, preX = splitData(tensor, 30, 30)
+# print(knownX[:,0].reshape(-1,1))
+# print(knownY)
+# print(preX)
+
+a = np.array([[1,2,3],
+             [4,5,6]])
+b = np.array([7,8,9])
+# a = np.r_[a,b]
+print(a.reshape(-1,1))
+print(a.transpose())
+# c = np.array([])
+# c = np.c_[c,b]
+# print(c)
+
+path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\"
+files = os.listdir(path)
+print(files)
