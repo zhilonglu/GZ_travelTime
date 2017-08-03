@@ -12,6 +12,7 @@ import numpy as np
 from sklearn.model_selection import KFold
 import pandas as pd
 import matplotlib.pyplot as plt
+import SelfValidMAPE
 
 def loadPath():
     # with open("config.json") as f:
@@ -48,14 +49,14 @@ def get_model_list():
     # model_list.append(SVR(kernel = 'rbf', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
     # name_list.append('SVR_rbf')
 
-    # model_list.append(DecisionTreeRegressor())
-    # name_list.append('DT')
+    model_list.append(DecisionTreeRegressor())
+    name_list.append('DT')
 
-    model_list.append(RandomForestRegressor(n_estimators=300, max_depth=None,min_samples_split=2, random_state=0))
+    model_list.append(RandomForestRegressor(n_estimators=150, max_depth=None,min_samples_split=2, random_state=0))
     name_list.append('RF')
 
-    # model_list.append(ExtraTreesRegressor(n_estimators=300, max_depth=None, max_features='auto', min_samples_split=2, random_state=0))
-    # name_list.append('ET')
+    model_list.append(ExtraTreesRegressor(n_estimators=150, max_depth=None, max_features='auto', min_samples_split=2, random_state=0))
+    name_list.append('ET')
 
     # model_list.append(AdaBoostRegressor())
     # name_list.append('AdaBoost')
@@ -91,22 +92,17 @@ def modelfit(alg, dtrain, predictors,useTrainCV=True, cv_folds=5, early_stopping
     plt.ylabel('Feature Importance Score')
 
 #xgboost进行预测的结果
-def xgb_pre(k,i):
-    tensor = np.loadtxt(datapath + k + "\\" + i + "\\" + "tensor_fill.csv", delimiter=',')
-    knownX, knownY, preX = splitData(tensor, 30, days)
+def xgb_pre(knownX,knownY,preX):
     x_train, x_test, y_train, y_test = train_test_split(knownX, knownY, test_size=0.5, random_state=1)
     for i in range(y_train.shape[1]):
         data_train = xgb.DMatrix(x_train, label=y_train[:, i].reshape(-1, 1))# 按列训练，分30次训练
-        param = {'max_depth': 6, 'eta': 0.8, 'silent': 1, 'objective': 'count:poisson', 'eval_metric': 'map'}
+        param = {'max_depth': 6, 'eta': 0.8, 'silent': 1, 'objective': 'reg:linear', 'eval_metric': 'map'}
         bst = xgb.train(param, data_train, num_boost_round=100)
         pre_data = xgb.DMatrix(preX)
-        temp = bst.predict(x_test).reshape(-1, 1)
         tempPre = bst.predict(pre_data).reshape(-1,1)
         if i == 0:
-            validY_pre = temp
             Y_pre = tempPre
         else:
-            validY_pre = np.c_[validY_pre, temp]
             Y_pre = np.c_[Y_pre, tempPre]
     Y_pre = Y_pre.reshape(-1, 1)
     return Y_pre
@@ -137,7 +133,7 @@ def CVAndPre(name,model,X_train,Y_train,X_pre):
                         Y_pre = np.c_[Y_pre,tempPre]
                 Y_pre = Y_pre.reshape(-1,1)
             except:
-                return None
+                return "error"
         err = my_score(validY_pre, validY)
         print(name + ":error:%f"%err)
         if isFirst==1:
@@ -166,8 +162,9 @@ def processing():
         tempValue = []
         cnt = 0
         for model_idx in range(len(modelList)):
-            pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],knownX,knownY,preX)
-            if pre_y == None:
+            # pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],knownX,knownY,preX)
+            pre_y = xgb_pre(knownX,knownY,preX)
+            if pre_y == "error":
                 continue
             if cnt==0:
                 tempValue = pre_y
@@ -194,7 +191,9 @@ def outputResult(pre_value):
     for i in range(len(timeDay)):
         for j in range(len(timeMin)-1):
             timeId.append("["+timeDay[i]+" "+timeMin[j]+","+timeDay[i]+" "+timeMin[j+1]+")")
+    #用于自验证时的输出
     with open(path+"selfValid\\selfValid_XGBModel.txt","w") as f:
+    # with open(path + "result\\RF_DT_Model0802.txt", "w") as f:
         for i in range(len(linkDict)):
             for j in range(len(timeId)):
                 f.write(linkDict[str(i+1)] + "#" + timeId[j].split(" ")[0][1:] + "#" + timeId[j] + "#" + str(pre_value[str(i+1)][j])+"\n")
@@ -202,3 +201,5 @@ def outputResult(pre_value):
 if __name__ == '__main__':
     pre_value = processing()
     outputResult(pre_value)
+    #本地自验证的MAPE输出
+    SelfValidMAPE.processingOut("selfValid_XGBModel_linear.txt")

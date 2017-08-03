@@ -222,17 +222,33 @@ knownX, knownY, preX = splitData(tensor, 30, 30)
 # print(knownX[:,0].reshape(-1,1))
 # print(knownY)
 # print(preX)
+#MAPE
+def my_score(Y_real, Y_pred):
+    MAPE = np.abs(np.ones_like(Y_pred) - Y_pred / Y_real)
+    return np.array([MAPE])
 
-a = np.array([[1,2,3],
-             [4,5,6]])
+a = np.array([1,2,3])
 b = np.array([7,8,9])
 # a = np.r_[a,b]
-print(a.reshape(-1,1))
+print(len(a))
 print(a.transpose())
+print(my_score(a,b))
 # c = np.array([])
 # c = np.c_[c,b]
 # print(c)
 
 path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\"
 files = os.listdir(path)
-print(files)
+# print(files)
+
+per_range = [i/10 for i in range(10,20)]
+# print(per_range)
+
+def findMinExceptZero(a):
+    tmp = sorted(a)
+    for i in tmp:
+        if i != 0:
+            return i
+    return 0
+
+print(findMinExceptZero([0,1,3,0,-3]))

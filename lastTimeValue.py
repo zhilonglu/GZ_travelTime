@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import SelfValidMAPE
 
 def loadPath():
     # with open("config.json") as f:
@@ -59,9 +60,21 @@ with open(datapath+"gy_contest_link_traveltime_training_data.txt") as f:
 outputs=[]
 # with open(datapath+"result\\submit_lastValue1.txt","w") as f:
 #如果进行本地验证时，则启用下述代码
-with open(datapath + "selfValid\\selfValid_lastValue1_new.txt", "w") as f:
-    for i in linkid:
-        for j in timeId:
-            day = j.split(" ")[0][1:]
-            value = avgData[(linkDict[i],day)]
-            f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
+# with open(datapath + "selfValid\\selfValid_lastValue1_new.txt", "w") as f:
+#     for i in linkid:
+#         for j in timeId:
+#             day = j.split(" ")[0][1:]
+#             value = avgData[(linkDict[i],day)]
+#             f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
+
+#进行gridsearch找出最好的乘比例
+per_range = [i/10 for i in range(10,15)]
+for per in per_range:
+    filename = "selfValid_lastValue_"+str(per)+".txt"
+    with open(datapath + "selfValid\\"+filename, "w") as f:
+        for i in linkid:
+            for j in timeId:
+                day = j.split(" ")[0][1:]
+                value = avgData[(linkDict[i], day)]*per
+                f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
+    SelfValidMAPE.processingOut(filename)

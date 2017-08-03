@@ -37,6 +37,17 @@ def initLinkId_num():
     with open(path + "reDict.json") as f:
         linkDict = json.loads(f.read())
     return linkDict
+#计算一个link的MAPE
+def my_score(Y_real, Y_pred):
+    loss = 0
+    cnt = 0
+    for i in range(len(Y_real)):
+        if float(Y_real[i]) == 0:
+            continue
+        else:
+            loss += abs(float(Y_pred[i])/float(Y_real[i])-1)
+            cnt += 1
+    return loss/cnt
 def compareFile(file1,file2,file3):
     linkid = initLinkId()
     linkdict = initLinkId_num()
@@ -53,7 +64,7 @@ def compareFile(file1,file2,file3):
         fin_result_1[i]=[]
         fin_result_2[i]=[]
         fin_result_3[i]=[]
-    with open(path+"result\\"+file1) as f1:
+    with open(path+"selfValid\\"+file1) as f1:
         all = f1.readlines()
         for i in range(len(all)):
             values = all[i].replace("\n","").split("#")
@@ -62,7 +73,7 @@ def compareFile(file1,file2,file3):
             result_dict_1[i] = sorted(result_dict_1[i])
             for j in result_dict_1[i]:
                 fin_result_1[i].append(j[1])
-    with open(path+"result\\"+file2) as f2:
+    with open(path+"selfValid\\"+file2) as f2:
         all = f2.readlines()
         for i in range(len(all)):
             values = all[i].replace("\n","").split("#")
@@ -71,7 +82,7 @@ def compareFile(file1,file2,file3):
             result_dict_2[i] = sorted(result_dict_2[i])
             for j in result_dict_2[i]:
                 fin_result_2[i].append(j[1])
-    with open(path+"result\\"+file3) as f3:
+    with open(path+"selfValid\\"+file3) as f3:
         all = f3.readlines()
         for i in range(len(all)):
             values = all[i].replace("\n","").split("#")
@@ -80,13 +91,35 @@ def compareFile(file1,file2,file3):
             result_dict_3[i] = sorted(result_dict_3[i])
             for j in result_dict_3[i]:
                 fin_result_3[i].append(j[1])
+
+    MAPE = {}
+    for idx in range(1,133):
+        MAPE[idx] = 0
     for i in linkid:
-        x = np.array(range(900))
+        # x = np.array(range(900))
         y1 = np.array(fin_result_1[i])
         y2 = np.array(fin_result_2[i])
         y3 = np.array(fin_result_3[i])
         # plotInOneFigure(linkdict[i],x,y1,y2,y3,file1,file2,file3)
-        plotInOneSubFigure(linkdict[i], x, y1, y2, y3, file1, file2, file3)
+        # plotInOneSubFigure(linkdict[i], x, y1, y2, y3, file1, file2, file3)
+        MAPE[linkdict[i]] = my_score(y1,y2)
+        # y1_y3 = my_score(y1,y3)
+    xlabel = sorted(MAPE.keys())
+    ylabel = []
+    for key,value in MAPE.items():
+        ylabel.append(value)
+    print(min(MAPE.items(), key=lambda x: x[1]))
+    print(max(MAPE.items(), key=lambda x: x[1]))
+    plotMapeFigure("MAPE",xlabel,ylabel,file2)
+    # plotMapeFigure(i,x,y1_y3, file3)
+def plotMapeFigure(i,x,y,name):
+    plt.figure()
+    plt.plot(x, y, color="blue", linewidth=2.5, linestyle="-", label=name+"_MAPE")
+    plt.xlabel("Linkid")  # X轴标签
+    plt.ylabel("MAPE")  # Y轴标签
+    plt.title(i)  # 标题
+    plt.legend(loc='upper right')
+    plt.show()
 #将所有图像画在一张图表中
 def plotInOneFigure(i,x,y1,y2,y3,file1,file2,file3):
     plt.figure()
@@ -120,4 +153,4 @@ def plotInOneSubFigure(i,x,y1,y2,y3,file1,file2,file3):
     plt.legend(loc='upper right')
     plt.show()
 if __name__ == '__main__':
-    compareFile("submit_fcn_mean5AndLastValue2AndweightKNN_0731.txt","submit_fcn_mean5.txt","submit_XGBWeighted_possion.txt")
+    compareFile("selfValid_TrueY.txt","selfValid_lastValue_1.1.txt","selfvalid_SVRAndfcnmean5KNNLastValue1.0.txt")

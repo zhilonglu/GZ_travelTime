@@ -1,27 +1,9 @@
-'''
-Created on 2017-7-31
-
-@author: Administrator
-'''
-import numpy as np
-import os
-import datetime
 import json
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.model_selection import KFold
 
 def loadPath():
     with open("config.json") as f:
         config=json.loads(f.read())
         return config["datapath"],config["sharepath"],config["rootpath"],config["selfvalidpath"]
-
-datapath,sharepath,rootpath,selfvalidpath=loadPath()
-
-toBeValided=datapath+"selfValid\\selfValid_RF300Model.txt"
-
-TrueY=datapath+"selfValid\\selfValid_TrueY.txt"
-
-TrueYFill=datapath+"selfValid\\selfValid_TrueYFill.txt"
 
 def mape(toBeValided,TrueY):
     YDict={}
@@ -49,7 +31,13 @@ def mape(toBeValided,TrueY):
                     notzero+=1
                     sumloss+=abs(prey-truey)/truey
     return sumloss/notzero
-
-print(mape(toBeValided,TrueY))
-print(mape(toBeValided,TrueYFill))
+def processingOut(filename):
+    datapath, sharepath, rootpath, selfvalidpath = loadPath()
+    toBeValided = datapath + "selfValid\\"+filename
+    TrueY = datapath + "selfValid\\selfValid_TrueY.txt"
+    TrueYFill = datapath + "selfValid\\selfValid_TrueYFill.txt"
+    print(filename+" TrueY MAPE: %f"%mape(toBeValided,TrueY))
+    print(filename+" TrueYFill MAPE: %f"%mape(toBeValided,TrueYFill))
+if __name__ == '__main__':
+        processingOut("selfvalid_SVRAndfcnmean5KNNLastValue1.1.txt")
 

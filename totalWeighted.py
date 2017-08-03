@@ -4,7 +4,8 @@ from sklearn.model_selection import train_test_split
 import os
 import json
 import numpy as np
-
+#这个程序主要是根据历史数据，将预测的1个小时中每个时间片中历史量的占比作为权值
+#然后根据1个小时的总量，结合权值最终计算出每个时间片的值。将预测时间片转换成预测整个1小时的总量。
 def loadPath():
     with open("config.json") as f:
         config=json.loads(f.read())
