@@ -34,20 +34,20 @@ def splitData(tensor,n_output,n_pred):
 def get_model_list():
     model_list, name_list = [], []
 
-    # model_list.append(gaussian_process.GaussianProcess(theta0=1e-2, thetaL=1e-4, thetaU=1e-1))
-    # name_list.append('GaussianProcess')
+    model_list.append(gaussian_process.GaussianProcess(theta0=1e-2, thetaL=1e-4, thetaU=1e-1))
+    name_list.append('GaussianProcess')
 
-    # model_list.append(KNeighborsRegressor(weights = 'uniform',n_neighbors=24))
-    # name_list.append('KNN_unif')
-    #
-    # model_list.append(KNeighborsRegressor(weights = 'distance',n_neighbors=24))
-    # name_list.append('KNN_dist')
+    model_list.append(KNeighborsRegressor(weights = 'uniform',n_neighbors=28))
+    name_list.append('KNN_unif')
 
-    # model_list.append(SVR(kernel = 'poly', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
-    # name_list.append('SVR_poly')
+    model_list.append(KNeighborsRegressor(weights = 'distance',n_neighbors=28))
+    name_list.append('KNN_dist')
 
-    # model_list.append(SVR(kernel = 'rbf', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
-    # name_list.append('SVR_rbf')
+    model_list.append(SVR(kernel = 'poly', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
+    name_list.append('SVR_poly')
+
+    model_list.append(SVR(kernel = 'rbf', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
+    name_list.append('SVR_rbf')
 
     model_list.append(DecisionTreeRegressor())
     name_list.append('DT')
@@ -57,9 +57,6 @@ def get_model_list():
 
     model_list.append(ExtraTreesRegressor(n_estimators=150, max_depth=None, max_features='auto', min_samples_split=2, random_state=0))
     name_list.append('ET')
-
-    # model_list.append(AdaBoostRegressor())
-    # name_list.append('AdaBoost')
 
     return model_list,name_list
 
@@ -96,7 +93,7 @@ def xgb_pre(knownX,knownY,preX):
     x_train, x_test, y_train, y_test = train_test_split(knownX, knownY, test_size=0.5, random_state=1)
     for i in range(y_train.shape[1]):
         data_train = xgb.DMatrix(x_train, label=y_train[:, i].reshape(-1, 1))# 按列训练，分30次训练
-        param = {'max_depth': 6, 'eta': 0.8, 'silent': 1, 'objective': 'reg:linear', 'eval_metric': 'map'}
+        param = {'max_depth': 6, 'eta': 0.8, 'silent': 1, 'objective': 'count:poisson', 'eval_metric': 'map'}
         bst = xgb.train(param, data_train, num_boost_round=100)
         pre_data = xgb.DMatrix(preX)
         tempPre = bst.predict(pre_data).reshape(-1,1)
@@ -162,8 +159,8 @@ def processing():
         tempValue = []
         cnt = 0
         for model_idx in range(len(modelList)):
-            # pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],knownX,knownY,preX)
-            pre_y = xgb_pre(knownX,knownY,preX)
+            pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],knownX,knownY,preX)
+            # pre_y = xgb_pre(knownX,knownY,preX)
             if pre_y == "error":
                 continue
             if cnt==0:
@@ -192,7 +189,7 @@ def outputResult(pre_value):
         for j in range(len(timeMin)-1):
             timeId.append("["+timeDay[i]+" "+timeMin[j]+","+timeDay[i]+" "+timeMin[j+1]+")")
     #用于自验证时的输出
-    with open(path+"selfValid\\selfValid_XGBModel.txt","w") as f:
+    with open(path+"selfValid\\selfValid_Allmode804.txt","w") as f:
     # with open(path + "result\\RF_DT_Model0802.txt", "w") as f:
         for i in range(len(linkDict)):
             for j in range(len(timeId)):
@@ -202,4 +199,4 @@ if __name__ == '__main__':
     pre_value = processing()
     outputResult(pre_value)
     #本地自验证的MAPE输出
-    SelfValidMAPE.processingOut("selfValid_XGBModel_linear.txt")
+    SelfValidMAPE.processingOut("selfValid_Allmode804.txt")

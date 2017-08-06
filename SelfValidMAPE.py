@@ -39,5 +39,5 @@ def processingOut(filename):
     print(filename+" TrueY MAPE: %f"%mape(toBeValided,TrueY))
     print(filename+" TrueYFill MAPE: %f"%mape(toBeValided,TrueYFill))
 if __name__ == '__main__':
-        processingOut("selfvalid_SVRAndfcnmean5KNNLastValue1.1.txt")
+        processingOut("nobugfcn_selfvalid_median.txt")
 

@@ -4,9 +4,9 @@ import os
 import SelfValidMAPE
 
 def loadPath():
-    # with open("config.json") as f:
+    with open("config.json") as f:
     #这是用于自验证的代码
-    with open("configSelfValid.json") as f:
+    # with open("configSelfValid.json") as f:
         config=json.loads(f.read())
         return config["datapath"],config["sharepath"],config["rootpath"],config["selfvalidpath"],config["startdate"],config["days"]
 
@@ -18,7 +18,7 @@ with open(datapath+"linkDict.json") as f:
 reDict={}
 with open(datapath+"reDict.json") as f:
     reDict=json.loads(f.read())
-linkid = os.listdir(selfvalidpath)
+linkid = os.listdir(rootpath)
 timeId=[]
 timeDay=[]
 timeMin=[]
@@ -38,11 +38,6 @@ time_range= []
 for i in range(0,60,2):
     endTime = startTime + datetime.timedelta(minutes=i)
     time_range.append(datetime.datetime.strftime(endTime,"%H:%M:%S"))
-# with open(datapath+"gy_contest_link_info.txt") as f:
-#     f.readline()
-#     all = f.readlines()
-#     for i in range(len(all)):
-#         linkid.append(all[i].split(";")[0])
 avgData={}
 for i in linkid:
     for j in timeDay:
@@ -58,23 +53,23 @@ with open(datapath+"gy_contest_link_traveltime_training_data.txt") as f:
         if idx_day in timeDay and str(reDict[idx_linkid]) in linkid and idx_timeRange==lastTime:
             avgData[(idx_linkid,idx_day)]=float(values[3].replace("\n",""))
 outputs=[]
-# with open(datapath+"result\\submit_lastValue1.txt","w") as f:
+with open(datapath+"result\\submit_lastValue1.5.txt","w") as f:
 #如果进行本地验证时，则启用下述代码
 # with open(datapath + "selfValid\\selfValid_lastValue1_new.txt", "w") as f:
-#     for i in linkid:
-#         for j in timeId:
-#             day = j.split(" ")[0][1:]
-#             value = avgData[(linkDict[i],day)]
-#             f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
+    for i in linkid:
+        for j in timeId:
+            day = j.split(" ")[0][1:]
+            value = avgData[(linkDict[i],day)]*1.5
+            f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
 
 #进行gridsearch找出最好的乘比例
-per_range = [i/10 for i in range(10,15)]
-for per in per_range:
-    filename = "selfValid_lastValue_"+str(per)+".txt"
-    with open(datapath + "selfValid\\"+filename, "w") as f:
-        for i in linkid:
-            for j in timeId:
-                day = j.split(" ")[0][1:]
-                value = avgData[(linkDict[i], day)]*per
-                f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
-    SelfValidMAPE.processingOut(filename)
+# per_range = [i/10 for i in range(10,20)]
+# for per in per_range:
+#     filename = "selfValid_lastValue_"+str(per)+".txt"
+#     with open(datapath + "selfValid\\"+filename, "w") as f:
+#         for i in linkid:
+#             for j in timeId:
+#                 day = j.split(" ")[0][1:]
+#                 value = avgData[(linkDict[i], day)]*per
+#                 f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
+#     SelfValidMAPE.processingOut(filename)

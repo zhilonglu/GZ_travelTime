@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import datetime
 def splitData(tensor,n_output,n_pred):
     print(tensor.shape)
     n_known=tensor.shape[0]-n_pred
@@ -227,28 +228,38 @@ def my_score(Y_real, Y_pred):
     MAPE = np.abs(np.ones_like(Y_pred) - Y_pred / Y_real)
     return np.array([MAPE])
 
-a = np.array([1,2,3])
-b = np.array([7,8,9])
-# a = np.r_[a,b]
-print(len(a))
-print(a.transpose())
-print(my_score(a,b))
-# c = np.array([])
-# c = np.c_[c,b]
-# print(c)
-
-path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\"
-files = os.listdir(path)
-# print(files)
-
-per_range = [i/10 for i in range(10,20)]
-# print(per_range)
-
-def findMinExceptZero(a):
-    tmp = sorted(a)
-    for i in tmp:
-        if i != 0:
-            return i
-    return 0
-
-print(findMinExceptZero([0,1,3,0,-3]))
+a = np.array([1,2,3]).reshape(-1,1)
+b = np.array([7,8,9]).reshape(-1,1)
+a = np.c_[a,b]
+print(a)
+# print(a.transpose())
+# print(my_score(a,b))
+# # c = np.array([])
+# # c = np.c_[c,b]
+# # print(c)
+#
+# path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\"
+# files = os.listdir(path)
+# # print(files)
+#
+# per_range = [i/10 for i in range(10,20)]
+# # print(per_range)
+#
+# def findMinExceptZero(a):
+#     tmp = sorted(a)
+#     for i in tmp:
+#         if i != 0:
+#             return i
+#     return 0
+#
+# # print(findMinExceptZero([0,1,3,0,-3]))
+#
+# startDay = datetime.datetime.strptime("2016-06-06","%Y-%m-%d")
+# startTime = datetime.datetime.strptime("08:00:00","%H:%M:%S")
+# # print(startDay.weekday())#返回的值是0-6，代表的是周一到周日
+#
+# a = [i for i in range(6,11)]
+# b = a
+# for i in range(13):
+#     b.append([i*10+k for k in a])
+# print(b)
