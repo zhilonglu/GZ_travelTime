@@ -1,13 +1,7 @@
-'''
-Created on 2017-7-31
-
-@author: Administrator
-'''
 from datetime import datetime
 import os
 import numpy as np
 import tensorflow as tf
-import gc
 from sklearn.model_selection import KFold
 import json
 
@@ -29,8 +23,6 @@ def splitData(tensor,n_output,n_pred):
     knownY = tensor[0: n_known, n_input: n_input + n_output]
     preX = tensor[n_known: n_known+n_pred, 0: n_input]
     return (knownX,knownY,preX)
-
-
 
 def lstm_cell(lstm_size):
     return tf.contrib.rnn.BasicLSTMCell(lstm_size)

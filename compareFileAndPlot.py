@@ -96,21 +96,23 @@ def compareFile(file1,file2,file3):
     for idx in range(1,133):
         MAPE[idx] = 0
     for i in linkid:
-        # x = np.array(range(900))
-        y1 = np.array(fin_result_1[i])
-        y2 = np.array(fin_result_2[i])
-        y3 = np.array(fin_result_3[i])
-        # plotInOneFigure(linkdict[i],x,y1,y2,y3,file1,file2,file3)
-        # plotInOneSubFigure(linkdict[i], x, y1, y2, y3, file1, file2, file3)
-        MAPE[linkdict[i]] = my_score(y1,y2)
+        if linkdict[i] == 68:
+            x = np.array(range(210))
+            y1 = np.array(fin_result_1[i])
+            y2 = np.array(fin_result_2[i])
+            y3 = np.array(fin_result_3[i])
+            # plotInOneFigure(linkdict[i],x,y1,y2,y3,file1,file2,file3)
+            plotInOneSubFigure(linkdict[i], x, y1, y2, y3, file1, file2, file3)
+        # MAPE[linkdict[i]] = my_score(y1,y2)
         # y1_y3 = my_score(y1,y3)
-    xlabel = sorted(MAPE.keys())
-    ylabel = []
-    for key,value in MAPE.items():
-        ylabel.append(value)
-    print(min(MAPE.items(), key=lambda x: x[1]))
-    print(max(MAPE.items(), key=lambda x: x[1]))
-    plotMapeFigure("MAPE",xlabel,ylabel,file2)
+    # xlabel = sorted(MAPE.keys())
+    # ylabel = []
+    # for key,value in MAPE.items():
+    #     ylabel.append(value)
+    # print(file2)
+    # print(min(MAPE.items(), key=lambda x: x[1]))
+    # print(max(MAPE.items(), key=lambda x: x[1]))
+    # plotMapeFigure("MAPE",xlabel,ylabel,file2)
     # plotMapeFigure(i,x,y1_y3, file3)
 def plotMapeFigure(i,x,y,name):
     plt.figure()
@@ -153,4 +155,4 @@ def plotInOneSubFigure(i,x,y1,y2,y3,file1,file2,file3):
     plt.legend(loc='upper right')
     plt.show()
 if __name__ == '__main__':
-    compareFile("selfValid_TrueY.txt","selfValid_lastValue_1.1.txt","selfvalid_SVRAndfcnmean5KNNLastValue1.0.txt")
+    compareFile("selfValid_TrueY.txt","selfvalid_RNN807Knn_802HV1.0.txt","selfvalid_RNN807fcnmean_803.txt")

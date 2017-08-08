@@ -6,6 +6,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor,AdaBoostRegressor
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
+from sklearn.grid_search import GridSearchCV
 import os
 import json
 import numpy as np
@@ -34,29 +35,29 @@ def splitData(tensor,n_output,n_pred):
 def get_model_list():
     model_list, name_list = [], []
 
-    model_list.append(gaussian_process.GaussianProcess(theta0=1e-2, thetaL=1e-4, thetaU=1e-1))
-    name_list.append('GaussianProcess')
+    # model_list.append(gaussian_process.GaussianProcessRegressor(alpha=1e-10))
+    # name_list.append('GaussianProcess')
 
-    model_list.append(KNeighborsRegressor(weights = 'uniform',n_neighbors=28))
-    name_list.append('KNN_unif')
-
-    model_list.append(KNeighborsRegressor(weights = 'distance',n_neighbors=28))
-    name_list.append('KNN_dist')
-
-    model_list.append(SVR(kernel = 'poly', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
-    name_list.append('SVR_poly')
-
-    model_list.append(SVR(kernel = 'rbf', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
+    # model_list.append(KNeighborsRegressor(weights = 'uniform',n_neighbors=28))
+    # name_list.append('KNN_unif')
+    #
+    # model_list.append(KNeighborsRegressor(weights = 'distance',n_neighbors=28))
+    # name_list.append('KNN_dist')
+    #
+    # model_list.append(SVR(kernel = 'poly', C = 1, gamma = 'auto', coef0 = 0, degree = 2))
+    # name_list.append('SVR_poly')
+    # #
+    model_list.append(SVR(kernel = 'rbf', C = 0.5, gamma = 'auto'))
     name_list.append('SVR_rbf')
-
-    model_list.append(DecisionTreeRegressor())
-    name_list.append('DT')
-
-    model_list.append(RandomForestRegressor(n_estimators=150, max_depth=None,min_samples_split=2, random_state=0))
-    name_list.append('RF')
-
-    model_list.append(ExtraTreesRegressor(n_estimators=150, max_depth=None, max_features='auto', min_samples_split=2, random_state=0))
-    name_list.append('ET')
+    # #
+    # model_list.append(DecisionTreeRegressor())
+    # name_list.append('DT')
+    #
+    # model_list.append(RandomForestRegressor(n_estimators=150, max_depth=None,min_samples_split=2, random_state=0))
+    # name_list.append('RF')
+    #
+    # model_list.append(ExtraTreesRegressor(n_estimators=150, max_depth=None, max_features='auto', min_samples_split=2, random_state=0))
+    # name_list.append('ET')
 
     return model_list,name_list
 
@@ -89,20 +90,82 @@ def modelfit(alg, dtrain, predictors,useTrainCV=True, cv_folds=5, early_stopping
     plt.ylabel('Feature Importance Score')
 
 #xgboost进行预测的结果
-def xgb_pre(knownX,knownY,preX):
+def xgb_Train(knownX,knownY,preX,tempPara):
+    #max_depth,subsample,colsample_bytree,eta 3,1.0,0.8,0.05 0.507587
+    # max_depth,subsample,colsample_bytree,eta 6,0.8,0.8,0.15 0.510138
     x_train, x_test, y_train, y_test = train_test_split(knownX, knownY, test_size=0.5, random_state=1)
     for i in range(y_train.shape[1]):
         data_train = xgb.DMatrix(x_train, label=y_train[:, i].reshape(-1, 1))# 按列训练，分30次训练
-        param = {'max_depth': 6, 'eta': 0.8, 'silent': 1, 'objective': 'count:poisson', 'eval_metric': 'map'}
-        bst = xgb.train(param, data_train, num_boost_round=100)
+        # data_test = xgb.DMatrix(x_test, label=y_test[:, i].reshape(-1, 1))
+        param = { 'n_estimators': 1000, 'max_depth': tempPara[1],
+                 'min_child_weight': 5, 'gamma': 0, 'subsample': tempPara[2], 'colsample_bytree': tempPara[3],
+                 'scale_pos_weight': 1, 'eta': tempPara[0], 'silent ':1,'objective': 'count:poisson'}#“reg:linear”
+        num_round = 100
+        # evallist = [(data_test, 'eval'), (data_train, 'train')]
+        bst = xgb.train(param, data_train, num_round)
         pre_data = xgb.DMatrix(preX)
-        tempPre = bst.predict(pre_data).reshape(-1,1)
+        tempPre = bst.predict(pre_data).reshape(-1, 1)
+        #tempPre = bst.predict(pre_data,ntree_limit=bst.best_ntree_limit).reshape(-1,1)
         if i == 0:
             Y_pre = tempPre
         else:
             Y_pre = np.c_[Y_pre, tempPre]
     Y_pre = Y_pre.reshape(-1, 1)
     return Y_pre
+
+#评价函数
+def mape(Y_real, Y_pred):
+    loss = 0
+    cnt = 0
+    for i in range(len(Y_real)):
+        if float(Y_real[i]) == 0:
+            continue
+        else:
+            loss += abs(float(Y_pred[i])/float(Y_real[i])-1)
+            cnt += 1
+    return "mape",loss/cnt
+
+#xgboost进行预测的结果2
+def xgb_Fit(knownX,knownY,preX):
+    xlf = xgb.XGBRegressor(max_depth=11,
+                           learning_rate=0.01,
+                           n_estimators=301,
+                           silent=True,
+                           objective=mape,
+                           gamma=0,
+                           min_child_weight=5,
+                           max_delta_step=0,
+                           subsample=0.8,
+                           colsample_bytree=0.8,
+                           colsample_bylevel=1,
+                           reg_alpha=1e0,
+                           reg_lambda=0,
+                           scale_pos_weight=1,
+                           seed=9,
+                           missing=None)
+    x_train, x_test, y_train, y_test = train_test_split(knownX, knownY, test_size=0.5, random_state=1)
+    for i in range(y_train.shape[1]):
+        xlf.fit(x_train, y_train[:, i].reshape(-1, 1), eval_metric=mape, verbose=False)
+                # eval_set=[(x_test, y_test[:, i].reshape(-1, 1))], early_stopping_rounds=2)
+        tempPre = xlf.predict(preX).reshape(-1, 1)
+        if i == 0:
+            Y_pre = tempPre
+        else:
+            Y_pre = np.c_[Y_pre, tempPre]
+    Y_pre = Y_pre.reshape(-1, 1)
+    return Y_pre
+
+#对model进行gridsearch
+def gridSearach(X_train,Y_train):
+    tuned_parameters = {'kernel': ['rbf'],
+                         'C': [0,1,0.1]}
+    scores = ['precision', 'recall']
+    for score in scores:
+        clf = GridSearchCV(SVR(C=1), tuned_parameters, cv=12,
+                           scoring='%s_macro' % score)
+        clf.fit(X_train, Y_train)
+        print(clf.best_params_)
+
 
 #sklearn常规模型的集成
 def CVAndPre(name,model,X_train,Y_train,X_pre):
@@ -131,8 +194,8 @@ def CVAndPre(name,model,X_train,Y_train,X_pre):
                 Y_pre = Y_pre.reshape(-1,1)
             except:
                 return "error"
-        err = my_score(validY_pre, validY)
-        print(name + ":error:%f"%err)
+        # err = my_score(validY_pre, validY)
+        # print(name + ":error:%f"%err)
         if isFirst==1:
             avgPre = Y_pre
             isFirst = 0
@@ -147,7 +210,7 @@ with open(path+"linkDict.json") as f:
     linkDict=json.loads(f.read())
 
 #核心的处理过程
-def processing():
+def processing(tempParam):
     modelList,namelist = get_model_list()
     pre_value={}#存储每个link的预测值
     for id in range(1,133):
@@ -159,8 +222,11 @@ def processing():
         tempValue = []
         cnt = 0
         for model_idx in range(len(modelList)):
-            pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],knownX,knownY,preX)
-            # pre_y = xgb_pre(knownX,knownY,preX)
+            # pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],knownX,knownY,preX)
+            # model = SVR(kernel='rbf', C=c_para, gamma='auto')
+            # pre_y = CVAndPre(namelist[model_idx],model,knownX,knownY,preX)
+            pre_y = xgb_Train(knownX,knownY,preX,tempParam)
+            # pre_y = xgb_Fit(knownX, knownY, preX)
             if pre_y == "error":
                 continue
             if cnt==0:
@@ -171,9 +237,8 @@ def processing():
         pre_value[i] = (tempValue/cnt).reshape(1,-1)[0]
     return pre_value
 
-
 #下面的代码主要是将模型训练后预测的结果输出到最终提交文件中
-def outputResult(pre_value):
+def outputResult(pre_value,outputFile):
     timeId=[]
     timeDay=[]
     timeMin=[]
@@ -189,14 +254,24 @@ def outputResult(pre_value):
         for j in range(len(timeMin)-1):
             timeId.append("["+timeDay[i]+" "+timeMin[j]+","+timeDay[i]+" "+timeMin[j+1]+")")
     #用于自验证时的输出
-    with open(path+"selfValid\\selfValid_Allmode804.txt","w") as f:
-    # with open(path + "result\\RF_DT_Model0802.txt", "w") as f:
+    with open(path+"selfValid\\"+outputFile,"w") as f:
+    # with open(path + "result\\"+outputFile, "w") as f:
         for i in range(len(linkDict)):
             for j in range(len(timeId)):
                 f.write(linkDict[str(i+1)] + "#" + timeId[j].split(" ")[0][1:] + "#" + timeId[j] + "#" + str(pre_value[str(i+1)][j])+"\n")
 
 if __name__ == '__main__':
-    pre_value = processing()
-    outputResult(pre_value)
-    #本地自验证的MAPE输出
-    SelfValidMAPE.processingOut("selfValid_Allmode804.txt")
+    # with open(path+"selfValid\\xgb_model.txt","w") as f:
+        # for e in range(0,201):
+        #     for m in range(3,11):
+        #         for s in range(1,11):
+        #             for c in range(1,11):
+        outputFile = "xgb_808_1.txt"
+        # para = [e/100,m,s/10,c/10]
+        para = [0.05,3,1,0.8]
+        pre_value = processing(para)
+        outputResult(pre_value,outputFile)
+        # #本地自验证的MAPE输出
+        Rmape = SelfValidMAPE.processingOut(outputFile)
+        # os.remove(path+"selfValid\\"+outputFile)
+        # f.write("#".join(map(str,para))+" mape:%f\n"%Rmape)
