@@ -38,7 +38,8 @@ def initLinkId_num():
         linkDict = json.loads(f.read())
     return linkDict
 #计算一个link的MAPE
-def my_score(Y_real, Y_pred):
+def my_score(Y):
+    Y_real,Y_pred = Y[0],Y[1]
     loss = 0
     cnt = 0
     for i in range(len(Y_real)):
@@ -48,68 +49,51 @@ def my_score(Y_real, Y_pred):
             loss += abs(float(Y_pred[i])/float(Y_real[i])-1)
             cnt += 1
     return loss/cnt
-def compareFile(file1,file2,file3):
+def compareFile(files):
+    len_file = len(files)#total file input
     linkid = initLinkId()
     linkdict = initLinkId_num()
-    result_dict_1={}
-    result_dict_2={}
-    result_dict_3={}
-    fin_result_1={}
-    fin_result_2 = {}
-    fin_result_3={}
+    result_dict = []
+    fin_result = []
+    for i in range(len_file):
+        result_dict.append({})
+        fin_result.append({})
     for i in linkid:
-        result_dict_1[i]=[]
-        result_dict_2[i]=[]
-        result_dict_3[i]=[]
-        fin_result_1[i]=[]
-        fin_result_2[i]=[]
-        fin_result_3[i]=[]
-    with open(path+"selfValid\\"+file1) as f1:
-        all = f1.readlines()
-        for i in range(len(all)):
-            values = all[i].replace("\n","").split("#")
-            result_dict_1[values[0]].append((values[1],values[3]))
-        for i in result_dict_1:
-            result_dict_1[i] = sorted(result_dict_1[i])
-            for j in result_dict_1[i]:
-                fin_result_1[i].append(j[1])
-    with open(path+"selfValid\\"+file2) as f2:
-        all = f2.readlines()
-        for i in range(len(all)):
-            values = all[i].replace("\n","").split("#")
-            result_dict_2[values[0]].append((values[1],values[3]))
-        for i in result_dict_2:
-            result_dict_2[i] = sorted(result_dict_2[i])
-            for j in result_dict_2[i]:
-                fin_result_2[i].append(j[1])
-    with open(path+"selfValid\\"+file3) as f3:
-        all = f3.readlines()
-        for i in range(len(all)):
-            values = all[i].replace("\n","").split("#")
-            result_dict_3[values[0]].append((values[1],values[3]))
-        for i in result_dict_3:
-            result_dict_3[i] = sorted(result_dict_3[i])
-            for j in result_dict_3[i]:
-                fin_result_3[i].append(j[1])
-
+        for j in range(len_file):
+            result_dict[j][i] = []
+            fin_result[j][i] = []
+    for i in range(len_file):
+        with open(path+"selfValid\\"+files[i]) as f1:
+            all = f1.readlines()
+            for j in range(len(all)):
+                values = all[j].replace("\n","").split("#")
+                result_dict[i][values[0]].append((values[1],values[3]))
+            for idx in result_dict[i]:
+                result_dict[i][idx] = sorted(result_dict[i][idx])
+                for j in result_dict[i][idx]:
+                    fin_result[i][idx].append(j[1])
     MAPE = {}
     for idx in range(1,133):
         MAPE[idx] = 0
     for i in linkid:
-        if linkdict[i] == 68:
-            x = np.array(range(210))
-            y1 = np.array(fin_result_1[i])
-            y2 = np.array(fin_result_2[i])
-            y3 = np.array(fin_result_3[i])
+        x = np.array(range(210))
+        y = []
+        for j in range(len_file):
+            y.append(np.array(fin_result[j][i]))
             # plotInOneFigure(linkdict[i],x,y1,y2,y3,file1,file2,file3)
-            plotInOneSubFigure(linkdict[i], x, y1, y2, y3, file1, file2, file3)
-        # MAPE[linkdict[i]] = my_score(y1,y2)
+        # if linkdict[i] in [54,119,72,59,65,93]:
+        #     plotInOneSubFigure(linkdict[i], x, y,files)
+        MAPE[linkdict[i]] = my_score(y)
         # y1_y3 = my_score(y1,y3)
-    # xlabel = sorted(MAPE.keys())
-    # ylabel = []
-    # for key,value in MAPE.items():
-    #     ylabel.append(value)
-    # print(file2)
+    xlabel = sorted(MAPE.keys())
+    ylabel = []
+    for key,value in MAPE.items():
+        ylabel.append(value)
+    srtDict = sorted(MAPE.items(),key=lambda x: x[1],reverse=True)
+    for key in srtDict:
+        if key[1]>0.4:
+            print(key)
+    # print(sorted(MAPE.items(),key=lambda x: x[1],reverse=True))
     # print(min(MAPE.items(), key=lambda x: x[1]))
     # print(max(MAPE.items(), key=lambda x: x[1]))
     # plotMapeFigure("MAPE",xlabel,ylabel,file2)
@@ -123,36 +107,52 @@ def plotMapeFigure(i,x,y,name):
     plt.legend(loc='upper right')
     plt.show()
 #将所有图像画在一张图表中
-def plotInOneFigure(i,x,y1,y2,y3,file1,file2,file3):
+def plotInOneFigure(i,x,y,files):
+    color_range = ["blue","red","green"]
     plt.figure()
-    plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label=file1.split(".")[0])
-    plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label=file2.split(".")[0])
-    plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label=file3.split(".")[0])
+    for idx in range(len(files)):
+        plt.plot(x,y[idx],color=color_range[idx], linewidth=2.5, linestyle="-",label=files[idx].split(".")[0])
     plt.xlabel("time")  # X轴标签
     plt.ylabel("TrafficVolume")  # Y轴标签
     plt.title(i)  # 标题
     plt.legend(loc='upper right')
     plt.show()
 #将所有图像画在不同的sub图中
-def plotInOneSubFigure(i,x,y1,y2,y3,file1,file2,file3):
+def plotInOneSubFigure(i,x,y,files):
     plt.figure()
-    ax1 = plt.subplot(311)
-    ax2 = plt.subplot(312)
-    ax3 = plt.subplot(313)
-    plt.sca(ax1)
-    plt.plot(x,y1,color="blue", linewidth=2.5, linestyle="-",label=file1.split(".")[0])
-    plt.ylabel("TrafficVolume")  # Y轴标签
-    plt.title(i)  # 标题
-    plt.legend(loc='upper right')
-    plt.sca(ax2)
-    plt.plot(x,y2,color="red",  linewidth=2.5, linestyle="-",label=file2.split(".")[0])
-    plt.ylabel("TrafficVolume")  # Y轴标签
-    plt.legend(loc='upper right')
-    plt.sca(ax3)
-    plt.plot(x,y3,color="green", linewidth=2.5, linestyle="-", label=file3.split(".")[0])
-    plt.xlabel("time")  # X轴标签
-    plt.ylabel("TrafficVolume")  # Y轴标签
-    plt.legend(loc='upper right')
+    if len(files)==2:
+        ax1 = plt.subplot(211)
+        ax2 = plt.subplot(212)
+        plt.sca(ax1)
+        plt.plot(x, y[0], color="blue", linewidth=2.5, linestyle="-", label=files[0].split(".")[0])
+        plt.ylabel("TrafficVolume")  # Y轴标签
+        plt.title(i)  # 标题
+        plt.legend(loc='upper right')
+        plt.sca(ax2)
+        plt.plot(x, y[1], color="red", linewidth=2.5, linestyle="-", label=files[1].split(".")[0])
+        plt.ylabel("TrafficVolume")  # Y轴标签
+        plt.legend(loc='upper right')
+    else:
+        ax1 = plt.subplot(311)
+        ax2 = plt.subplot(312)
+        ax3 = plt.subplot(313)
+        plt.sca(ax1)
+        plt.plot(x,y[0],color="blue", linewidth=2.5, linestyle="-",label=files[0].split(".")[0])
+        plt.ylabel("TrafficVolume")  # Y轴标签
+        plt.title(i)  # 标题
+        plt.legend(loc='upper right')
+        plt.sca(ax2)
+        plt.plot(x,y[1],color="red",  linewidth=2.5, linestyle="-",label=files[1].split(".")[0])
+        plt.ylabel("TrafficVolume")  # Y轴标签
+        plt.legend(loc='upper right')
+        plt.sca(ax3)
+        plt.plot(x,y[2],color="green", linewidth=2.5, linestyle="-", label=files[2].split(".")[0])
+        plt.xlabel("time")  # X轴标签
+        plt.ylabel("TrafficVolume")  # Y轴标签
+        plt.legend(loc='upper right')
     plt.show()
 if __name__ == '__main__':
-    compareFile("selfValid_TrueY.txt","selfvalid_RNN807Knn_802HV1.0.txt","selfvalid_RNN807fcnmean_803.txt")
+    compareFile(["selfValid_TrueY.txt","xgb_808_1.txt"])
+    #selfvalid_historyValueByday_1.0,selfvalid_SixEnsemble
+    # "selfvalid_historyValueByday_1.0.txt","selfValid_lastValue_1.2.txt","xgb_808_1.txt","selfValid_KNN804.txt"
+    # ,"selfValid_SVRModel808.txt","selfvalid_RNNmean807.txt","selfvaild_fcn_mean803.txt","selfvaild_fcn_median803.txt"

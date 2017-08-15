@@ -222,7 +222,7 @@ tensor = np.loadtxt("C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\1\\tensor_f
 knownX, knownY, preX = splitData(tensor, 30, 30)
 # print(knownX[:,0].reshape(-1,1))
 # print(knownY)
-# print(preX)
+print(preX[0].reshape(1,-1)[0].tolist())
 #MAPE
 def my_score(Y_real, Y_pred):
     MAPE = np.abs(np.ones_like(Y_pred) - Y_pred / Y_real)
@@ -231,7 +231,7 @@ def my_score(Y_real, Y_pred):
 a = np.array([1,2,3]).reshape(-1,1)
 b = np.array([7,8,9]).reshape(-1,1)
 a = np.c_[a,b]
-print(a)
+# print(a)
 # print(a.transpose())
 # print(my_score(a,b))
 # # c = np.array([])
@@ -263,3 +263,11 @@ print(a)
 # for i in range(13):
 #     b.append([i*10+k for k in a])
 # print(b)
+
+
+a=[1,2,3,4,5,6]
+b=a[0:4]
+print(b)
+
+x = [1 for i in range(92)]
+print(x)

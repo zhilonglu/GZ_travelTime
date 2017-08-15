@@ -10,7 +10,7 @@ linkid=[]
 timeId=[]
 timeDay=[]
 timeMin=[]
-startDay = datetime.datetime.strptime("2016-06-01","%Y-%m-%d")
+startDay = datetime.datetime.strptime("2017-06-01","%Y-%m-%d")
 startTime = datetime.datetime.strptime("08:00:00","%H:%M:%S")
 for i in range(0,30,1):
     endDay = startDay + datetime.timedelta(days=i)
@@ -46,7 +46,7 @@ with open(path+"gy_contest_link_traveltime_training_data.txt") as f:
 for i in avgData:
     temp = sum(avgData[i])/len(avgData[i])
     avgData[i] = temp
-with open(path+"submit_1.txt","w") as f:
+with open(path+"submit_history.txt","w") as f:
     for i in timeId:
         day = i.split(" ")[0][1:]
         for j in linkid:

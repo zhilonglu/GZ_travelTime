@@ -42,7 +42,7 @@ avgData={}
 for i in linkid:
     for j in timeDay:
         avgData[(linkDict[i],j)] = 0
-with open(datapath+"gy_contest_link_traveltime_training_data.txt") as f:
+with open(datapath+"gy_contest_traveltime_training_data_second.txt") as f:
     f.readline()#skip the header
     all = f.readlines()
     for i in range(len(all)):
@@ -53,14 +53,16 @@ with open(datapath+"gy_contest_link_traveltime_training_data.txt") as f:
         if idx_day in timeDay and str(reDict[idx_linkid]) in linkid and idx_timeRange==lastTime:
             avgData[(idx_linkid,idx_day)]=float(values[3].replace("\n",""))
 outputs=[]
-with open(datapath+"result\\submit_lastValue1.5.txt","w") as f:
-#如果进行本地验证时，则启用下述代码
-# with open(datapath + "selfValid\\selfValid_lastValue1_new.txt", "w") as f:
-    for i in linkid:
-        for j in timeId:
-            day = j.split(" ")[0][1:]
-            value = avgData[(linkDict[i],day)]*1.5
-            f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
+per_range = [i/10 for i in range(10,16)]
+for per in per_range:
+    with open(datapath+"resultNew\\submit_lastValue_"+str(per)+".txt","w") as f:
+    #如果进行本地验证时，则启用下述代码
+    # with open(datapath + "selfValid\\selfValid_lastValue1_new.txt", "w") as f:
+        for i in linkid:
+            for j in timeId:
+                day = j.split(" ")[0][1:]
+                value = avgData[(linkDict[i],day)]*per
+                f.write(linkDict[i] + "#" + day + "#" + j + "#" + str(value) + "\n")
 
 #进行gridsearch找出最好的乘比例
 # per_range = [i/10 for i in range(10,20)]

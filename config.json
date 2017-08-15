@@ -1,8 +1,8 @@
 {
 	"datapath":"C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\",
 	"sharepath":"C:\\Users\\NLSDE\\Desktop\\icdm\\tianchi\\",
-	"rootpath":"C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\",
-	"selfvalidpath":"C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\",
-	"startdate":"2016-06-01",
+	"rootpath":"C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData5\\",
+	"selfvalidpath":"C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\resultNew\\",
+	"startdate":"2017-06-01",
 	"days":30
 }

@@ -3,7 +3,7 @@ import os
 import json
 import numpy as np
 rootpath = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\"
-path = rootpath+"tensorData4\\"
+path = rootpath+"tensorData5\\"
 
 
 def splitData(tensor,n_output):

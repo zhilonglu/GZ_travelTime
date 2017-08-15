@@ -15,23 +15,16 @@ from sklearn.model_selection import KFold
 import pandas as pd
 import matplotlib.pyplot as plt
 import SelfValidMAPE
+from sklearn.preprocessing import StandardScaler
 
 def loadPath():
-    # with open("config.json") as f:
     ##这是用于自验证的代码
     with open("configSelfValid.json") as f:
         config=json.loads(f.read())
         return config["datapath"],config["sharepath"],config["rootpath"],config["selfvalidpath"],config["startdate"],config["days"]
 datapath,sharepath,rootpath,selfvalidpath,startdate,days=loadPath()
 
-#将读取的tensor进行拆分，分为训练部分和测试部分
-def splitData(tensor,n_output,n_pred):
-    n_known=tensor.shape[0]-n_pred
-    n_input=tensor.shape[1]-n_output
-    knownX = tensor[0: n_known, 0: n_input]
-    knownY = tensor[0: n_known, n_input: n_input + n_output]
-    preX = tensor[n_known: n_known+n_pred, 0: n_input]
-    return (knownX,knownY,preX)
+
 
 def get_model_list():
     model_list, name_list = [], []
@@ -65,60 +58,48 @@ def get_model_list():
 
     return model_list,name_list
 
-#MAPE
-def my_score(Y_real, Y_pred):
-    MAPE = np.mean(np.abs(np.ones_like(Y_pred) - Y_pred / Y_real))
-    return np.array([MAPE]).reshape(-1, 1)
+#特征提取
+def feature_extraction(X):
+    # time series feature
+    X_self = X.copy()
+    # statical feature
+    X_p0, X_p25, X_p50, X_p75, X_p100 = np.percentile(X, (0, 25, 50, 75, 100),axis = 1)
+    X_mean = np.mean(X, axis = 1)
+    X_sum = np.sum(X, axis = 1)
+    X_std = np.std(X, axis = 1)
+    X_var = np.var(X, axis = 1)
+    X_diff = np.diff(X, axis = 1)
+    X_diff2 = np.diff(X_diff, axis = 1)
+    X_statical = np.c_[X_p0,X_p25,X_p50,X_p100,X_mean, X_sum, X_std, X_var,X_diff,X_diff2]
 
+    # discrete feature
+    X_int01 = (X / 1).astype(np.int)
+    X_int05 = (X / 5).astype(np.int)
+    X_int10 = (X / 10).astype(np.int)
+    X_int20 = (X / 20).astype(np.int)
+    X_int30 = (X / 30).astype(np.int)
+    X_int40 = (X / 40).astype(np.int)
+    X_int50 = (X / 50).astype(np.int)
+    X_discrete = np.c_[X_int01,X_int05,X_int10]
 
-#XGB利用gridsearch来进行参数的选择
-def modelfit(alg, dtrain, predictors,useTrainCV=True, cv_folds=5, early_stopping_rounds=50):
-    if useTrainCV:
-        xgb_param = alg.get_xgb_params()
-        xgtrain = xgb.DMatrix(dtrain[predictors].values, label=dtrain[target].values)
-        cvresult = xgb.cv(xgb_param, xgtrain, num_boost_round=alg.get_params()['n_estimators'], nfold=cv_folds,
-            metrics='auc', early_stopping_rounds=early_stopping_rounds, show_progress=False)
-        alg.set_params(n_estimators=cvresult.shape[0])
-    #Fit the algorithm on the data
-    alg.fit(dtrain[predictors], dtrain['Disbursed'],eval_metric='auc')
-    #Predict training set:
-    dtrain_predictions = alg.predict(dtrain[predictors])
-    dtrain_predprob = alg.predict_proba(dtrain[predictors])[:,1]
-    #Print model report:
-    print("\nModel Report")
-    print("Accuracy : %.4g" % metrics.accuracy_score(dtrain['Disbursed'].values, dtrain_predictions))
-    print("AUC Score (Train): %f" % metrics.roc_auc_score(dtrain['Disbursed'], dtrain_predprob))
+    if True:
+        return np.c_[X_self,X_statical,X_discrete]
 
-    feat_imp = pd.Series(alg.booster().get_fscore()).sort_values(ascending=False)
-    feat_imp.plot(kind='bar', title='Feature Importances')
-    plt.ylabel('Feature Importance Score')
+#目标函数
+def mapeobj(preds,dtrain):
+    # gaps = dtrain.get_label()
+    gaps = dtrain
+    grad = np.sign(preds-gaps)/gaps
+    hess = 1/gaps
+    grad[(gaps==0)] = 0
+    hess[(gaps==0)] = 0
+    return grad,hess
 
-#xgboost进行预测的结果
-def xgb_Train(knownX,knownY,preX,tempPara):
-    #max_depth,subsample,colsample_bytree,eta 3,1.0,0.8,0.05 0.507587
-    # max_depth,subsample,colsample_bytree,eta 6,0.8,0.8,0.15 0.510138
-    x_train, x_test, y_train, y_test = train_test_split(knownX, knownY, test_size=0.5, random_state=1)
-    for i in range(y_train.shape[1]):
-        data_train = xgb.DMatrix(x_train, label=y_train[:, i].reshape(-1, 1))# 按列训练，分30次训练
-        # data_test = xgb.DMatrix(x_test, label=y_test[:, i].reshape(-1, 1))
-        param = { 'n_estimators': 1000, 'max_depth': tempPara[1],
-                 'min_child_weight': 5, 'gamma': 0, 'subsample': tempPara[2], 'colsample_bytree': tempPara[3],
-                 'scale_pos_weight': 1, 'eta': tempPara[0], 'silent ':1,'objective': 'count:poisson'}#“reg:linear”
-        num_round = 100
-        # evallist = [(data_test, 'eval'), (data_train, 'train')]
-        bst = xgb.train(param, data_train, num_round)
-        pre_data = xgb.DMatrix(preX)
-        tempPre = bst.predict(pre_data).reshape(-1, 1)
-        #tempPre = bst.predict(pre_data,ntree_limit=bst.best_ntree_limit).reshape(-1,1)
-        if i == 0:
-            Y_pre = tempPre
-        else:
-            Y_pre = np.c_[Y_pre, tempPre]
-    Y_pre = Y_pre.reshape(-1, 1)
-    return Y_pre
-
-#评价函数
-def mape(Y_real, Y_pred):
+#评估函数
+def mape(preds,dtrain):
+    # Y_real = dtrain.get_label()
+    Y_real = dtrain
+    Y_pred = preds
     loss = 0
     cnt = 0
     for i in range(len(Y_real)):
@@ -129,29 +110,33 @@ def mape(Y_real, Y_pred):
             cnt += 1
     return "mape",loss/cnt
 
-#xgboost进行预测的结果2
-def xgb_Fit(knownX,knownY,preX):
-    xlf = xgb.XGBRegressor(max_depth=11,
-                           learning_rate=0.01,
-                           n_estimators=301,
-                           silent=True,
-                           objective=mape,
-                           gamma=0,
-                           min_child_weight=5,
-                           max_delta_step=0,
-                           subsample=0.8,
-                           colsample_bytree=0.8,
-                           colsample_bylevel=1,
-                           reg_alpha=1e0,
-                           reg_lambda=0,
-                           scale_pos_weight=1,
-                           seed=9,
-                           missing=None)
+def my_score(Y_real, Y_pred):
+    MAPE = np.mean(np.abs(np.ones_like(Y_pred) - Y_pred / Y_real))
+    return np.array([MAPE]).reshape(-1, 1)
+
+#将读取的tensor进行拆分，分为训练部分和测试部分
+def splitData(tensor,n_output,n_pred):
+    n_known=tensor.shape[0]-n_pred
+    n_input=tensor.shape[1]-n_output
+    knownX = tensor[0: n_known, 0: n_input]
+    knownY = tensor[0: n_known, n_input: n_input + n_output]
+    preX = tensor[n_known: n_known+n_pred, 0: n_input]
+    return (knownX,knownY,preX)
+
+#xgboost进行预测的结果
+def xgb_Train(knownX,knownY,preX,tempPara):
     x_train, x_test, y_train, y_test = train_test_split(knownX, knownY, test_size=0.5, random_state=1)
     for i in range(y_train.shape[1]):
-        xlf.fit(x_train, y_train[:, i].reshape(-1, 1), eval_metric=mape, verbose=False)
-                # eval_set=[(x_test, y_test[:, i].reshape(-1, 1))], early_stopping_rounds=2)
-        tempPre = xlf.predict(preX).reshape(-1, 1)
+        data_train = xgb.DMatrix(x_train, label=y_train[:, i].reshape(-1, 1))# 按列训练，分30次训练
+        param = { 'n_estimators': 1000, 'max_depth': tempPara[1],
+                 'min_child_weight': 5, 'gamma': 0, 'subsample': tempPara[2], 'colsample_bytree': tempPara[3],
+                 'scale_pos_weight': 1, 'eta': tempPara[0], 'silent ':False}
+        num_round = 100
+        data_test = xgb.DMatrix(x_test, label=y_test[:, i].reshape(-1, 1))  # 按列训练，分30次训练
+        watchlist = [(data_test, 'eval'), (data_train, 'train')]
+        bst = xgb.train(param, data_train, num_round,watchlist,obj=mapeobj,feval=mape)
+        pre_data = xgb.DMatrix(preX)
+        tempPre = bst.predict(pre_data).reshape(-1, 1)
         if i == 0:
             Y_pre = tempPre
         else:
@@ -159,17 +144,36 @@ def xgb_Fit(knownX,knownY,preX):
     Y_pre = Y_pre.reshape(-1, 1)
     return Y_pre
 
-#对model进行gridsearch
-def gridSearach(X_train,Y_train):
-    tuned_parameters = {'kernel': ['rbf'],
-                         'C': [0,1,0.1]}
-    scores = ['precision', 'recall']
-    for score in scores:
-        clf = GridSearchCV(SVR(C=1), tuned_parameters, cv=12,
-                           scoring='%s_macro' % score)
-        clf.fit(X_train, Y_train)
-        print(clf.best_params_)
-
+def xgb_Fit(knownX,knownY,preX):
+    xlf = xgb.XGBRegressor(max_depth=7,#11
+                           learning_rate=0.06,#0.01
+                           n_estimators=1000,
+                           silent=True,
+                           objective=mapeobj,
+                           gamma=0,
+                           min_child_weight=5,
+                           max_delta_step=0,
+                           subsample=1,#0.8
+                           colsample_bytree=0.8,
+                           colsample_bylevel=1,
+                           reg_alpha=1e0,
+                           reg_lambda=0,
+                           scale_pos_weight=1,
+                           seed=1850,
+                           missing=None)
+    x_train, x_test, y_train, y_test = train_test_split(knownX, knownY, test_size=0.5, random_state=1)
+    for i in range(y_train.shape[1]):
+        xlf.fit(x_train, y_train[:, i].reshape(-1,1))
+        # print('Training Error: {:.3f}'.format(1 - xlf.score(x_train,y_train[:,i].reshape(-1,1))))
+        # print('Validation Error: {:.3f}'.format(1 - xlf.score(x_test,y_test[:,i].reshape(-1,1))))
+        #predict value for output
+        tempPre = xlf.predict(preX).reshape(-1, 1)
+        if i == 0:
+            Y_pre = tempPre
+        else:
+            Y_pre = np.c_[Y_pre, tempPre]
+    Y_pre = Y_pre.reshape(-1, 1)
+    return Y_pre
 
 #sklearn常规模型的集成
 def CVAndPre(name,model,X_train,Y_train,X_pre):
@@ -199,7 +203,7 @@ def CVAndPre(name,model,X_train,Y_train,X_pre):
             except:
                 return "error"
         err = my_score(validY_pre, validY)
-        print(name + ":error:%f"%err)
+        print(name +":error:%f"%err)
         if isFirst==1:
             avgPre = Y_pre
             isFirst = 0
@@ -213,6 +217,19 @@ linkDict={}
 with open(path+"linkDict.json") as f:
     linkDict=json.loads(f.read())
 
+#初始化数据，并且加特征
+def initData(tensor):
+    knownX, knownY, preX = splitData(tensor, 30, days)
+    # standardize
+    ss_X = StandardScaler()
+    X_train = ss_X.fit_transform(knownX)
+    X_final = ss_X.transform(preX)
+    # Feature Engineering
+    X_train = feature_extraction(X_train)
+    X_final = feature_extraction(X_final)
+
+    return X_train,knownY,X_final
+
 #核心的处理过程
 def processing(c_para):
     modelList,namelist = get_model_list()
@@ -222,15 +239,16 @@ def processing(c_para):
     files = os.listdir(rootpath)
     for i in files:
         tensor = np.loadtxt(rootpath+ i + "\\" + "tensor_fill.csv", delimiter=',')
-        knownX, knownY, preX = splitData(tensor, 30, days)
+        # X_train, knownY, X_final = initData(tensor)#添加一些特征
+        X_train, knownY, X_final = splitData(tensor, 30, days)#未添加任何特征
         tempValue = []
         cnt = 0
         for model_idx in range(len(modelList)):
-            # pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],knownX,knownY,preX)
             model = SVR(kernel='rbf', C=c_para, gamma='auto')
-            pre_y = CVAndPre(namelist[model_idx],model,knownX,knownY,preX)
-            # pre_y = xgb_Train(knownX,knownY,preX,tempParam)
-            # pre_y = xgb_Fit(knownX, knownY, preX)
+            pre_y = CVAndPre(namelist[model_idx], model, X_train, knownY, X_final)
+            # pre_y = CVAndPre(namelist[model_idx],modelList[model_idx],X_train,knownY,X_final)
+            # pre_y = xgb_Train(X_train,knownY,X_final,c_para)
+            # pre_y = xgb_Fit(X_train,knownY,X_final)
             if pre_y == "error":
                 continue
             if cnt==0:
@@ -259,16 +277,15 @@ def outputResult(pre_value,outputFile):
             timeId.append("["+timeDay[i]+" "+timeMin[j]+","+timeDay[i]+" "+timeMin[j+1]+")")
     #用于自验证时的输出
     with open(path+"selfValidNew\\"+outputFile,"w") as f:
-    # with open(path + "resultNew\\"+outputFile, "w") as f:
         for i in range(len(linkDict)):
             for j in range(len(timeId)):
                 f.write(linkDict[str(i+1)] + "#" + timeId[j].split(" ")[0][1:] + "#" + timeId[j] + "#" + str(pre_value[str(i+1)][j])+"\n")
 
 if __name__ == '__main__':
 
-    outputFile = "self_svrModel810.txt"
-    # para = [0.06,7,1,0.8]
+    outputFile = "self_xgbModel814.txt"
     para = 0.3
+    # para = [0.06, 7, 1, 0.8]
     pre_value = processing(para)
     outputResult(pre_value, outputFile)
     # #本地自验证的MAPE输出

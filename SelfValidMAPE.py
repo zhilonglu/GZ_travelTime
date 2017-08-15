@@ -33,12 +33,12 @@ def mape(toBeValided,TrueY):
     return sumloss/notzero
 def processingOut(filename):
     datapath, sharepath, rootpath, selfvalidpath = loadPath()
-    toBeValided = datapath + "selfValid\\"+filename
-    TrueY = datapath + "selfValid\\selfValid_TrueY.txt"
+    toBeValided = datapath + "selfValidNew\\"+filename
+    TrueY = datapath + "selfValidNew\\selfValid_TrueY.txt"
     # TrueYFill = datapath + "selfValid\\selfValid_TrueYFill.txt"
     print(filename+" TrueY MAPE: %f"%mape(toBeValided,TrueY))
     return mape(toBeValided,TrueY)
     # print(filename+" TrueYFill MAPE: %f"%mape(toBeValided,TrueYFill))
 if __name__ == '__main__':
-        processingOut("selfvalid_RNNmean807.txt")
+        processingOut("selfValid_rnnmean812.txt")
 

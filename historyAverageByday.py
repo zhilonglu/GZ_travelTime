@@ -3,9 +3,9 @@ import json
 import SelfValidMAPE
 
 def loadPath():
-    # with open("config.json") as f:
+    with open("config.json") as f:
     #这是用于自验证的代码
-    with open("configSelfValid.json") as f:
+    # with open("configSelfValid.json") as f:
         config=json.loads(f.read())
         return config["datapath"],config["sharepath"],config["rootpath"],config["selfvalidpath"],config["startdate"],config["days"]
 
@@ -42,7 +42,7 @@ for i in linkid:
     for d in range(0,7):#代表的是星期几
         for j in time_range:
             avgData[(i,d,j)] = []
-with open(path+"gy_contest_link_traveltime_training_data.txt") as f:
+with open(path+"gy_contest_traveltime_training_data_second.txt") as f:
     f.readline()#skip the header
     all = f.readlines()
     for i in range(len(all)):
@@ -62,7 +62,7 @@ for i in avgData:
 #进行gridsearch找出最好的乘比例
 per_range = [i/10 for i in range(10,15)]
 for per in per_range:
-    outputfile = "selfvalid_historyValueByday_"+str(per)+".txt"
+    outputfile = "submit_historyValueByday_"+str(per)+".txt"
     with open(selfvalidpath+outputfile,"w") as f:
         for i in timeId:
             day = i.split(" ")[0][1:]
@@ -70,4 +70,4 @@ for per in per_range:
             for j in linkid:
                 value = avgData[(j,w_day,i.split(" ")[1].split(",")[0])]*per
                 f.write(j+"#"+day+"#"+i+"#"+str(value)+"\n")
-    SelfValidMAPE.processingOut(outputfile)
+    # SelfValidMAPE.processingOut(outputfile)

@@ -7,51 +7,66 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import datetime
 import os
+import json
+import SelfValidMAPE
 
-path = 'C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\'
-linkid=[]
+#将读取的tensor进行拆分，分为训练部分和测试部分
+def splitData(tensor,n_output,n_pred):
+    n_known=tensor.shape[0]-n_pred
+    n_input=tensor.shape[1]-n_output
+    knownX = tensor[0: n_known, 0: n_input]
+    knownY = tensor[0: n_known, n_input: n_input + n_output]
+    preX = tensor[n_known: n_known+n_pred, 0: n_input]
+    return preX
+
+def loadPath():
+    # with open("config.json") as f:
+    #这是用于自验证的代码
+    with open("configSelfValid.json") as f:
+        config=json.loads(f.read())
+        return config["datapath"],config["sharepath"],config["rootpath"],config["selfvalidpath"],config["startdate"],config["days"]
+
+datapath,sharepath,rootpath,selfvalidpath,startdate,days=loadPath()
+
+
+
+linkDict={}
+with open(datapath+"linkDict.json") as f:
+    linkDict=json.loads(f.read())
+path = datapath
 timeId=[]
 timeDay=[]
 timeMin=[]
-startDay = datetime.datetime.strptime("2016-06-01","%Y-%m-%d")
+startDay = datetime.datetime.strptime(startdate,"%Y-%m-%d")
 startTime = datetime.datetime.strptime("08:00:00","%H:%M:%S")
-for i in range(0,30,1):
+for i in range(0,days,1):
     endDay = startDay + datetime.timedelta(days=i)
     timeDay.append(datetime.datetime.strftime(endDay,"%Y-%m-%d"))
 for i in range(0,62,2):
     endTime = startTime + datetime.timedelta(minutes=i)
     timeMin.append(datetime.datetime.strftime(endTime,"%H:%M:%S"))
 timeId=[]
-for j in range(len(timeMin)-1):
-    for i in range(len(timeDay)):
+for i in range(len(timeDay)):
+    for j in range(len(timeMin) - 1):
         timeId.append("["+timeDay[i]+" "+timeMin[j]+","+timeDay[i]+" "+timeMin[j+1]+")")
-# print(timeId)
-file_dict ={}
-#file_dict[id]=[(time,value)]
-for id in linkid:
-    file_dict[id]=[]
-sort_file_dict={}
 def process():
-    dataPath = path+"tensorData\\"
+    dataPath = selfvalidpath
     files = os.listdir(dataPath)
     pre_result={}
     for i in files:
-        arima_data = {}
         pre_result[i]=[]
-        for n in range(30):
-            arima_data[n] = []
-        files_id = os.listdir(dataPath + i)
-        for file in files_id:
-            if file == "tensor_fill.csv":
-                with open(dataPath + i + "\\" + file) as f2:
-                    all = f2.readlines()
-                    for j in range(0, len(all) - 30):
-                        tempdata = list(map(float, all[j].replace("\n", "").split(",")))
-                        for k in range(60, 90):
-                            arima_data[k - 60].append(tempdata[k])
-        for idx in arima_data:
-            pre_result[i].append((idx,ar_model(arima_data[idx])))
+        tensor = np.loadtxt(dataPath + i + "\\tensor_fill.csv",delimiter=',')
+        preX = splitData(tensor,30,days)
+        for idx in range(days):
+            try:
+                pre_result[i].append(ar_model(preX[idx].reshape(1,-1)[0].tolist()))
+            except:
+                print(i)
+                value = preX[idx].reshape(1,-1)[0].tolist()[0]
+                tempvalue = [value for i in range(30)]
+                pre_result[i].append(tempvalue)
     return pre_result
+
 def ar_model(data):
     dta=pd.Series(data)
     start = '1760'
@@ -63,16 +78,20 @@ def ar_model(data):
     predict_sunspots = arma_mod20.predict(predict_start,predict_end,dynamic=True)
     pre_data=predict_sunspots.values.tolist()
     return pre_data
-def main():
+
+def main(output):
     result = process()
-    with open(path + "submit_ARIMA.txt", "w") as f:
+    with open(output, "w") as f:
         for k in result:
             value_list = result[k]
             preV=[]
             for i in value_list:
-                preV +=i[1]
+                preV +=i
             for j in range(len(timeId)):
                 day = timeId[j].split(" ")[0][1:]
-                f.write(k + "#" + day + "#" + timeId[j] + "#" + str(preV[j]) + "\n")
+                f.write(linkDict[k] + "#" + day + "#" + timeId[j] + "#" + str(preV[j]) + "\n")
 if __name__ == '__main__':
-    main()
+    output = "selfValid_ARIMA.txt"
+    main(path + "selfValid\\"+output)
+    SelfValidMAPE.processingOut(output)
+    os.remove(path + "selfValid\\"+output)

@@ -1,8 +1,8 @@
 
-path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData3\\"
-for idx in range(67,69):
+path = "C:\\Users\\NLSDE\\Desktop\\GZ_kdd\\tensorData5\\"
+for idx in range(1,133):
     with open(path+str(idx)+"\\tensor.csv") as f:
-        with open(path+str(idx)+"\\tensor_fill.csv","w") as f2:
+        with open(path+str(idx)+"\\tensor_fill2.csv","w") as f2:
             data = [[0 for col in range(90)] for row in range(122)]
             all = f.readlines()
             sum = 0
